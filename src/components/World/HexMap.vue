@@ -267,7 +267,7 @@ export default defineComponent({
       //clear existing search labels
       map.find('.search-label').forEach((i) => i.remove());
 
-      if (!(props.searchResults != {} && props.searchResults[config.data.map])) return;
+      if (Object.keys(props.searchResults).length === 0 || !props.searchResults[config.data.map]) return;
 
       // Add search results
       Object.keys(props.searchResults[config.data.map]).forEach((id) => {
