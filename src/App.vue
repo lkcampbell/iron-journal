@@ -1,13 +1,14 @@
 <template>
   <router-view v-if="loaded" />
   <div v-else>
-    <div class="column q-pa-xl text-h4 self-center" style="height: 100%; width: 100%" v-on:click="skipIntro">
+    <div class="column q-pa-xl text-h4 self-center" style="height: 100vh; width: 100%" v-on:click="skipIntro">
       <div class="norse" v-for="(line, i) in msg" :key="i">
         {{ line }}
       </div>
     </div>
   </div>
 </template>
+
 <script lang="ts">
 import { defineComponent, watch, ref, onMounted } from 'vue';
 
