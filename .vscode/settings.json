@@ -13,5 +13,6 @@
   },
 
   "vetur.format.defaultFormatter.html": "prettyhtml",
-  "vetur.format.defaultFormatter.js": "prettier-eslint"
+  "vetur.format.defaultFormatter.js": "prettier-eslint",
+  "json.schemaDownload.enable": false
 }
