@@ -11,6 +11,7 @@
     </template>
 
     <q-editor
+      ref="editor"
       placeholder="Content"
       v-model="campaign.data.journal[index].content"
       :definitions="{
@@ -41,12 +42,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
 
 import { useCampaign } from 'src/store/campaign';
 import { useConfig } from 'src/store/config';
 
 import IInput from 'src/components/Widgets/IInput.vue';
+
+interface IQEditorRef {
+  runCmd: (cmd: string, param?: string) => void;
+}
 
 export default defineComponent({
   name: 'JournalEntry',
@@ -72,11 +77,21 @@ export default defineComponent({
       campaign.data.journal[index].pinned = !campaign.data.journal[index].pinned;
     };
 
+    const editor = ref<IQEditorRef | null>(null);
+    // Insert at the last-known cursor position instead of appending to the
+    // end: QEditor saves the caret's Range on blur, and runCmd('insertHTML')
+    // restores it before applying document.execCommand.
+    const insertImage = (html: string) => {
+      editor.value?.runCmd('insertHTML', html);
+    };
+
     return {
       campaign,
       config,
       pinIcon,
       pin,
+      editor,
+      insertImage,
     };
   },
 });
