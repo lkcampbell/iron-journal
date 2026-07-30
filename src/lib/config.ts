@@ -6,6 +6,7 @@ export function NewConfig (): IConfig {
     current: '',
     index: [],
     edit: true,
+    journalTab: false,
     saving: false,
     map: 0
   }

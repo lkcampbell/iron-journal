@@ -18,6 +18,7 @@ export const useConfig = defineStore({
       if ((await db.config.count()) > 0) {
         try {
           this.data = (await db.config.where('id').equals(1).first()) as IConfig;
+          this.data.journalTab ??= false;
           const campaign = useCampaign();
           if (!campaign.data.maps[this.data.map]) this.data.map = 0;
         } catch (err) {
