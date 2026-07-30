@@ -1,4 +1,37 @@
 {
+  // my settings
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "window.zoomLevel": 2,
+  "editor.fontSize": 14,
+  "editor.detectIndentation": false,
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "editor.rulers": [80],
+  "editor.wordWrapColumn": 80,
+  "editor.wordWrap": "wordWrapColumn",
+  // This redundant setting is necessary to override markdown default behavior
+  "[markdown]": {
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 80
+  },
+  "explorer.compactFolders": false,
+  "files.exclude": {
+    // "**/.DS_Store": false,
+    "**/.git": false
+  },
+  // Stop VS Code from changing words unintentionally
+  "editor.acceptSuggestionOnCommitCharacter": false,
+  "editor.acceptSuggestionOnEnter": "off",
+
+  // original settings
   "vetur.validation.template": false,
   "vetur.format.enable": false,
   "eslint.validate": ["javascript", "javascriptreact", "typescript", "vue"],
@@ -9,7 +42,7 @@
   "editor.formatOnSave": true,
 
   "editor.codeActionsOnSave": {
-      "source.fixAll": true
+    "source.fixAll": "explicit"
   },
 
   "vetur.format.defaultFormatter.html": "prettyhtml",
