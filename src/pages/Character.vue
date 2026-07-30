@@ -32,8 +32,10 @@
         label="Max"
         type="number"
         :max="10"
-        :min="-6"
-        v-model="campaign.data.character.tracks.momentum.max"
+        :min="0"
+        :model-value="campaign.data.character.tracks.momentum.max"
+        @update:model-value="(v) => setMax(campaign.data.character.tracks.momentum, v, 10)"
+        v-enter-max="(v) => setMax(campaign.data.character.tracks.momentum, v, 10)"
         dense
         borderless
         debounce="750"
@@ -61,8 +63,10 @@
           label="Max"
           type="number"
           :max="10"
-          :min="-6"
-          v-model="campaign.data.character.tracks.momentum.max"
+          :min="0"
+          :model-value="campaign.data.character.tracks.momentum.max"
+          @update:model-value="(v) => setMax(campaign.data.character.tracks.momentum, v, 10)"
+          v-enter-max="(v) => setMax(campaign.data.character.tracks.momentum, v, 10)"
           dense
           borderless
           debounce="750"
@@ -91,29 +95,107 @@
     <div class="row justify-between items-center q-gutter-sm q-pt-xs q-pb-xs" v-if="$q.screen.gt.xs">
       <span class="col-shrink text-bold">Health</span>
       <resource-track class="col-grow" v-model="campaign.data.character.tracks.health" />
+      <q-input
+        class="col-xs-2 col-sm-1 col-1"
+        label="Max"
+        type="number"
+        :max="5"
+        :min="0"
+        :model-value="campaign.data.character.tracks.health.max"
+        @update:model-value="(v) => setMax(campaign.data.character.tracks.health, v, 5)"
+        v-enter-max="(v) => setMax(campaign.data.character.tracks.health, v, 5)"
+        dense
+        borderless
+        debounce="750"
+      />
       <q-separator vertical />
 
       <span class="col-shrink text-bold">Spirit</span>
       <resource-track class="col-grow" v-model="campaign.data.character.tracks.spirit" />
+      <q-input
+        class="col-xs-2 col-sm-1 col-1"
+        label="Max"
+        type="number"
+        :max="5"
+        :min="0"
+        :model-value="campaign.data.character.tracks.spirit.max"
+        @update:model-value="(v) => setMax(campaign.data.character.tracks.spirit, v, 5)"
+        v-enter-max="(v) => setMax(campaign.data.character.tracks.spirit, v, 5)"
+        dense
+        borderless
+        debounce="750"
+      />
       <q-separator vertical />
 
       <span class="col-shrink text-bold">Supply</span>
       <resource-track class="col-grow" v-model="campaign.data.character.tracks.supply" />
+      <q-input
+        class="col-xs-2 col-sm-1 col-1"
+        label="Max"
+        type="number"
+        :max="5"
+        :min="0"
+        :model-value="campaign.data.character.tracks.supply.max"
+        @update:model-value="(v) => setMax(campaign.data.character.tracks.supply, v, 5)"
+        v-enter-max="(v) => setMax(campaign.data.character.tracks.supply, v, 5)"
+        dense
+        borderless
+        debounce="750"
+      />
     </div>
     <div v-else>
       <div class="row q-gutter-sm justify-between items-center">
         <span class="col-2 text-bold">Health</span>
         <resource-track class="col-grow" v-model="campaign.data.character.tracks.health" />
+        <q-input
+          class="col-2"
+          label="Max"
+          type="number"
+          :max="5"
+          :min="0"
+          :model-value="campaign.data.character.tracks.health.max"
+          @update:model-value="(v) => setMax(campaign.data.character.tracks.health, v, 5)"
+          v-enter-max="(v) => setMax(campaign.data.character.tracks.health, v, 5)"
+          dense
+          borderless
+          debounce="750"
+        />
       </div>
 
       <div class="row q-gutter-sm justify-between items-center">
         <span class="col-2 text-bold">Spirit</span>
         <resource-track class="col-grow" v-model="campaign.data.character.tracks.spirit" />
+        <q-input
+          class="col-2"
+          label="Max"
+          type="number"
+          :max="5"
+          :min="0"
+          :model-value="campaign.data.character.tracks.spirit.max"
+          @update:model-value="(v) => setMax(campaign.data.character.tracks.spirit, v, 5)"
+          v-enter-max="(v) => setMax(campaign.data.character.tracks.spirit, v, 5)"
+          dense
+          borderless
+          debounce="750"
+        />
       </div>
 
       <div class="row q-gutter-sm justify-between items-center">
         <span class="col-2 text-bold">Supply</span>
         <resource-track class="col-grow" v-model="campaign.data.character.tracks.supply" />
+        <q-input
+          class="col-2"
+          label="Max"
+          type="number"
+          :max="5"
+          :min="0"
+          :model-value="campaign.data.character.tracks.supply.max"
+          @update:model-value="(v) => setMax(campaign.data.character.tracks.supply, v, 5)"
+          v-enter-max="(v) => setMax(campaign.data.character.tracks.supply, v, 5)"
+          dense
+          borderless
+          debounce="750"
+        />
       </div>
     </div>
 
@@ -234,7 +316,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, Directive } from 'vue';
 
 import { useCampaign } from 'src/store/campaign';
 import { useConfig } from 'src/store/config';
@@ -246,8 +328,37 @@ import Asset from 'src/components/Assets/Asset.vue';
 import Assets from 'src/components/Assets/Assets.vue';
 import IInput from 'src/components/Widgets/IInput.vue';
 
+// QInput doesn't reliably forward a plain @keydown.enter listener down to its
+// native <input> (its internal attrs-splitting drops it), so we attach the
+// listener directly to the real DOM node instead.
+const vEnterMax: Directive<HTMLElement, (value: string) => void> = {
+  mounted(el, binding) {
+    const input = el.querySelector('input');
+    if (!input) {
+      return;
+    }
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        binding.value((e.target as HTMLInputElement).value);
+        (e.target as HTMLInputElement).blur();
+      }
+    };
+    input.addEventListener('keydown', handler);
+    (el as HTMLElement & { __enterMax?: { input: HTMLElement; handler: (e: KeyboardEvent) => void } }).__enterMax = {
+      input,
+      handler,
+    };
+  },
+  unmounted(el) {
+    const stored = (el as HTMLElement & { __enterMax?: { input: HTMLElement; handler: (e: KeyboardEvent) => void } })
+      .__enterMax;
+    stored?.input.removeEventListener('keydown', stored.handler);
+  },
+};
+
 export default defineComponent({
   name: 'Character',
+  directives: { enterMax: vEnterMax },
   components: { ResourceTrack, Stats, ProgressTrack, Asset, Assets, IInput },
   setup() {
     const campaign = useCampaign();
@@ -289,6 +400,18 @@ export default defineComponent({
       campaign.data.character.tracks.momentum.value = n;
     };
 
+    const setMax = (track: { max: number }, value: string | number, ceiling: number) => {
+      let n = Number(value);
+      if (Number.isNaN(n)) {
+        n = 0;
+      } else if (n > ceiling) {
+        n = ceiling;
+      } else if (n < 0) {
+        n = 0;
+      }
+      track.max = n;
+    };
+
     const config = useConfig();
 
     return {
@@ -300,6 +423,7 @@ export default defineComponent({
       markDebility,
 
       burnMomentum,
+      setMax,
       config,
     };
   },
