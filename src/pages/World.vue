@@ -62,6 +62,7 @@
           :input-style="{ color: '#ECEFF4' }"
           dense
         />
+        <q-toggle class="col-shrink" label="Bonds only" v-model="bondsOnly" dense />
         <q-btn class="col-shrink" flat dense icon="mdi-cog" @click="openMapConfig" />
       </div>
     </div>
@@ -82,6 +83,7 @@
           :input-style="{ color: '#ECEFF4' }"
           dense
         />
+        <q-toggle class="col-shrink" label="Bonds only" v-model="bondsOnly" dense />
         <q-btn class="col-shrink" flat dense icon="mdi-cog" @click="openMapConfig" />
       </div>
     </div>
@@ -220,6 +222,7 @@ export default defineComponent({
 
     const searchText = ref('');
     const filters = ref([] as EMapItems[]);
+    const bondsOnly = ref(false);
     const showMapConfig = ref(false);
 
     const mapOpts = computed((): ISelectOpt[] => {
@@ -290,14 +293,17 @@ export default defineComponent({
     const show = {
       locations: (o: ILocation): boolean => {
         if (applyFilters.value && !filters.value.includes(EMapItems.Locations)) return false;
+        if (bondsOnly.value && !o.bond) return false;
         return t(o.name) || t(o.descriptor);
       },
       npcs: (o: INPC): boolean => {
         if (applyFilters.value && !filters.value.includes(EMapItems.NPCs)) return false;
+        if (bondsOnly.value && !o.bond) return false;
         return t(o.name) || t(o.kin) || t(o.notes);
       },
       sites: (o: ISite): boolean => {
         if (applyFilters.value && !filters.value.includes(EMapItems.Sites)) return false;
+        if (bondsOnly.value) return false;
         return t(o.name);
       },
     };
@@ -409,6 +415,7 @@ export default defineComponent({
       EMapItems,
       filters,
       searchText,
+      bondsOnly,
       results,
       show,
       CellLabel,

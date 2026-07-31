@@ -333,6 +333,17 @@ export default defineComponent({
 
           img.mouseenter(() => img.animate(100).transform({ scale: 1.3 }));
           img.mouseleave(() => img.animate(100).transform({ scale: 1 }));
+
+          const hasBond = c.npcs.some((n) => n.bond) || c.locations.some((l) => l.bond);
+          if (hasBond) {
+            SVG()
+              .circle(size / 3)
+              .addClass('bond-marker')
+              .fill(colours.bond)
+              .stroke({ color: 'black', width: 1 })
+              .addTo(icons)
+              .move(x + size / 2.6 - size / 6, y - size / 6);
+          }
         }
       });
 

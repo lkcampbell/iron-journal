@@ -22,6 +22,7 @@ export const NewLocation = (): ILocation => {
     name: '',
     region: '',
     type: '',
+    bond: false,
     descriptor: '',
     trouble: '',
     notes: '',

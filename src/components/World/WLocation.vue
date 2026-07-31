@@ -20,11 +20,13 @@
           dense
         />
         <i-input class="col" label="Region" v-model="data.region" />
+        <q-checkbox class="col-shrink" dense label="Bond" v-model="data.bond" />
         <q-btn v-if="config.data.edit" icon="delete" flat dense @click="$emit('delete')" />
       </div>
       <div v-else>
         <div class="row q-gutter-sm q-mb-sm no-wrap">
           <i-input class="col" label="Name" v-model="data.name" />
+          <q-checkbox class="col-shrink" dense label="Bond" v-model="data.bond" />
           <q-btn v-if="config.data.edit" icon="delete" flat dense @click="$emit('delete')" />
         </div>
 

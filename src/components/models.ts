@@ -138,6 +138,7 @@ export interface ILocation {
   name: string;
   region: string;
   type: string; // Location table
+  bond: boolean;
   descriptor: string;
   trouble: string;
   notes: string;
