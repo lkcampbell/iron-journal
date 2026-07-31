@@ -2,9 +2,10 @@
   <div>
     <q-expansion-item
       :icon="`img:${icon.person()}`"
-      header-class="person-header rounded-borders q-mb-sm"
+      :header-class="['person-header', 'rounded-borders', 'q-mb-sm', { 'map-item-selected': selected }]"
       :label="`${data.name} (${data.pronouns})`"
       caption="Person"
+      @click="$emit('select')"
     >
       <controls v-if="controls" @move="$emit('move', $event)" />
       <div class="row q-gutter-sm q-mb-sm no-wrap" v-if="$q.screen.gt.xs">
@@ -69,8 +70,11 @@ export default defineComponent({
     controls: {
       type: Boolean,
     },
+    selected: {
+      type: Boolean,
+    },
   },
-  emits: ['update:modelValue', 'delete', 'move'],
+  emits: ['update:modelValue', 'delete', 'move', 'select'],
   setup(props, { emit }) {
     const data = ref(props.modelValue);
     watch(

@@ -1,9 +1,10 @@
 <template>
   <q-expansion-item
     :icon="`img:${icon.dungeon()}`"
-    header-class="site-header rounded-borders q-mb-sm"
+    :header-class="['site-header', 'rounded-borders', 'q-mb-sm', { 'map-item-selected': selected }]"
     :label="data.name"
     caption="Delve Site"
+    @click="$emit('select')"
   >
     <controls v-if="controls" @move="$emit('move', $event)" />
     <div class="row q-gutter-sm q-mb-sm">
@@ -105,8 +106,11 @@ export default defineComponent({
     controls: {
       type: Boolean,
     },
+    selected: {
+      type: Boolean,
+    },
   },
-  emits: ['update:modelValue', 'delete', 'move'],
+  emits: ['update:modelValue', 'delete', 'move', 'select'],
   setup(props, { emit }) {
     const data = ref(props.modelValue);
     watch(

@@ -44,7 +44,7 @@
     </div>
 
     <div class="row justify-center q-mb-md">
-      <hex-map :searchResults="results" />
+      <hex-map :searchResults="results" :selectedCell="selectedCell" />
     </div>
 
     <div v-if="$q.screen.gt.xs">
@@ -117,6 +117,8 @@
                   <w-location
                     v-model="campaign.data.maps[+mID].cells[cID][oType][+oID]"
                     @delete="campaign.removeObject(oType, +mID, cID as string, oID)"
+                    :selected="isSelected(+mID, cID as string, oType, +oID)"
+                    @select="selectItem(+mID, cID as string, oType, +oID)"
                   />
                 </div>
 
@@ -124,6 +126,8 @@
                   <w-site
                     v-model="campaign.data.maps[+mID].cells[cID][oType][+oID]"
                     @delete="campaign.removeObject(oType, +mID, cID as string, oID)"
+                    :selected="isSelected(+mID, cID as string, oType, +oID)"
+                    @select="selectItem(+mID, cID as string, oType, +oID)"
                   />
                 </div>
 
@@ -131,6 +135,8 @@
                   <w-npc
                     v-model="campaign.data.maps[+mID].cells[cID][oType][+oID]"
                     @delete="campaign.removeObject(oType, +mID, cID as string, oID)"
+                    :selected="isSelected(+mID, cID as string, oType, +oID)"
+                    @select="selectItem(+mID, cID as string, oType, +oID)"
                   />
                 </div>
               </div>
@@ -235,6 +241,34 @@ export default defineComponent({
     const searchText = ref('');
     const filters = ref([] as FilterOpt[]);
     const showMapConfig = ref(false);
+
+    interface ISelected {
+      map: number;
+      cell: string;
+      type: EMapItems;
+      id: number;
+    }
+    const selected = ref(null as ISelected | null);
+
+    const isSelected = (mID: number, cID: string, oType: EMapItems, oID: number): boolean => {
+      return (
+        selected.value !== null &&
+        selected.value.map === mID &&
+        selected.value.cell === cID &&
+        selected.value.type === oType &&
+        selected.value.id === oID
+      );
+    };
+
+    const selectItem = (mID: number, cID: string, oType: EMapItems, oID: number) => {
+      selected.value = { map: mID, cell: cID, type: oType, id: oID };
+      if (config.data.map !== mID) config.data.map = mID;
+    };
+
+    const selectedCell = computed((): string | null => {
+      if (selected.value === null || selected.value.map !== config.data.map) return null;
+      return selected.value.cell;
+    });
 
     const mapOpts = computed((): ISelectOpt[] => {
       const out: ISelectOpt[] = [];
@@ -439,6 +473,11 @@ export default defineComponent({
       results,
       show,
       CellLabel,
+
+      selected,
+      isSelected,
+      selectItem,
+      selectedCell,
     };
   },
 });

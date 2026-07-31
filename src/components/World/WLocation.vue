@@ -2,9 +2,10 @@
   <div>
     <q-expansion-item
       :icon="`img:${icon.location(data.type)}`"
-      header-class="place-header sf-header rounded-borders q-mb-sm"
+      :header-class="['place-header', 'sf-header', 'rounded-borders', 'q-mb-sm', { 'map-item-selected': selected }]"
       :label="data.name"
       :caption="`Location: ${data.type}`"
+      @click="$emit('select')"
     >
       <controls v-if="controls" @move="$emit('move', $event)" />
 
@@ -71,8 +72,11 @@ export default defineComponent({
     controls: {
       type: Boolean,
     },
+    selected: {
+      type: Boolean,
+    },
   },
-  emits: ['update:modelValue', 'delete', 'move'],
+  emits: ['update:modelValue', 'delete', 'move', 'select'],
   setup(props, { emit }) {
     const data = ref(props.modelValue);
     watch(

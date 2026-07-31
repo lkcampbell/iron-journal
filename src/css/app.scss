@@ -51,3 +51,8 @@ ij-header {
 .norse {
   font-family: 'Norse';
 }
+
+.map-item-selected {
+  outline: 3px solid $selected;
+  outline-offset: -3px;
+}

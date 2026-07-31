@@ -110,6 +110,10 @@ export default defineComponent({
       type: Object as PropType<ISearchResults>,
       default: <ISearchResults>{},
     },
+    selectedCell: {
+      type: String as PropType<string | null>,
+      default: null,
+    },
   },
   setup(props) {
     const hexmap: Ref<HTMLElement | null> = ref(null);
@@ -183,6 +187,7 @@ export default defineComponent({
       renderLabels();
       renderSearch();
       renderPlayer();
+      renderSelected();
       map.transform({
         origin: [0, 0],
         scale: campaign.data.maps[config.data.map].zoom,
@@ -385,6 +390,27 @@ export default defineComponent({
         .front();
     };
 
+    const renderSelected = () => {
+      console.log('Rendering selected hex');
+      map.find('.selected-hex').forEach((h) => h.remove());
+
+      if (!props.selectedCell) return;
+      if (map.find(`.${props.selectedCell}`).length === 0) return;
+
+      const { x, y } = getXY(props.selectedCell);
+      const corners = Hx().corners();
+      const points = corners.map((p) => `${p.x},${p.y}`).join(' ');
+
+      SVG()
+        .polygon(points)
+        .addClass('selected-hex')
+        .fill('none')
+        .stroke({ color: colours.selected, width: 4 })
+        .addTo(map)
+        .translate(x, y)
+        .front();
+    };
+
     // PRIMARY CLICK EVENT
     const click = (ev: { offsetX: number; offsetY: number }) => {
       // Get the SVG hex that was clicked on
@@ -472,6 +498,12 @@ export default defineComponent({
     watch(
       () => campaign.data.maps[config.data.map].player,
       () => renderPlayer()
+    );
+
+    // Selected item
+    watch(
+      () => props.selectedCell,
+      () => renderSelected()
     );
 
     return {
