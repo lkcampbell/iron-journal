@@ -96,7 +96,7 @@ import { useConfig } from 'src/store/config';
 import { Svg, SVG } from '@svgdotjs/svg.js';
 import { extendHex, defineGrid, HexFactory, Grid, Hex } from 'honeycomb-grid';
 import { CellLabel, NewCell } from 'src/lib/world';
-import { colours } from 'src/lib/colours';
+import { bondIconFilter, colours } from 'src/lib/colours';
 import { icon } from 'src/lib/icons';
 import { estimateHexH, estimateHexW, sleep } from 'src/lib/util';
 
@@ -358,15 +358,7 @@ export default defineComponent({
           img.mouseleave(() => img.animate(100).transform({ scale: 1 }));
 
           const hasBond = c.npcs.some((n) => n.bond) || c.locations.some((l) => l.bond);
-          if (hasBond) {
-            SVG()
-              .circle(size / 3)
-              .addClass('bond-marker')
-              .fill(colours.bond)
-              .stroke({ color: 'black', width: 1 })
-              .addTo(icons)
-              .move(x + size / 2.6 - size / 6, y - size / 6);
-          }
+          if (hasBond) img.css({ filter: bondIconFilter });
         }
       });
 
