@@ -101,16 +101,15 @@
         >
           <i-input class="q-mb-sm" label="Map Notes" v-model="campaign.data.maps[+mID].notes" autogrow />
 
-          <q-expansion-item
-            class="q-mb-md rounded-borders q-pa-none col-grow"
-            header-class="text-h6 card-bg"
-            flat
-            default-opened
+          <div
+            class="q-mb-md rounded-borders q-pa-xs col-grow"
+            style="border: 1px solid rgba(255, 255, 255, 0.15)"
             v-for="(cell, cID) in map"
             :key="cID"
-            :label="CellLabel(campaign.data.maps[+mID].cells[cID], cID as string).label"
           >
-            <div class="q-pt-xs" />
+            <div class="text-caption text-grey-5 q-px-xs">
+              {{ frameLabel(+mID, cID as string) }}
+            </div>
             <q-card-section class="q-px-xs q-py-none" v-for="(itemIDs, oType) in cell" :key="oType">
               <div v-for="oID in itemIDs" :key="oID">
                 <div v-if="oType === EMapItems.Locations">
@@ -141,7 +140,7 @@
                 </div>
               </div>
             </q-card-section>
-          </q-expansion-item>
+          </div>
         </q-expansion-item>
       </div>
     </div>
@@ -208,7 +207,7 @@ import { useCampaign } from 'src/store/campaign';
 import { useConfig } from 'src/store/config';
 import { useSelection } from 'src/store/selection';
 
-import { CellLabel, NewMap } from 'src/lib/world';
+import { NewMap } from 'src/lib/world';
 import { estimateHexH, estimateHexW } from 'src/lib/util';
 
 import HexMap from 'src/components/World/HexMap.vue';
@@ -331,6 +330,12 @@ export default defineComponent({
 
       return res;
     });
+
+    const frameLabel = (mID: number, cID: string): string => {
+      const cell = campaign.data.maps[mID].cells[cID];
+      if (cell.name === cID) return cID;
+      return cell.name || ' ';
+    };
 
     const show = {
       locations: (o: ILocation): boolean => {
@@ -461,7 +466,7 @@ export default defineComponent({
       searchText,
       results,
       show,
-      CellLabel,
+      frameLabel,
 
       selection,
       selectedCell,
