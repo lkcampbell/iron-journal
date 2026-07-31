@@ -86,7 +86,7 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, ref, PropType, watch, Ref } from 'vue';
-import { dom, useQuasar } from 'quasar';
+import { dom, scroll, useQuasar } from 'quasar';
 
 import { ECellStatus, EMapItems, ISearchResults } from '../models';
 
@@ -121,6 +121,8 @@ export default defineComponent({
     const campaign = useCampaign();
     const config = useConfig();
     const $q = useQuasar();
+
+    const { getScrollTarget, setVerticalScrollPosition, setHorizontalScrollPosition } = scroll;
 
     const showDialog = ref(false);
     const selectedID = ref('');
@@ -188,6 +190,7 @@ export default defineComponent({
       renderSearch();
       renderPlayer();
       renderSelected();
+      scrollToSelected();
       map.transform({
         origin: [0, 0],
         scale: campaign.data.maps[config.data.map].zoom,
@@ -411,6 +414,22 @@ export default defineComponent({
         .front();
     };
 
+    const scrollToSelected = () => {
+      if (!props.selectedCell || !hexmap.value) return;
+      if (map.find(`.${props.selectedCell}`).length === 0) return;
+
+      const target = getScrollTarget(hexmap.value);
+      const clientHeight = target instanceof Element ? target.clientHeight : document.documentElement.clientHeight;
+      const clientWidth = target instanceof Element ? target.clientWidth : document.documentElement.clientWidth;
+
+      const zoom = campaign.data.maps[config.data.map].zoom;
+      const { x, y } = getXY(props.selectedCell);
+      const duration = 300;
+
+      setVerticalScrollPosition(target, Math.max(0, y * zoom - clientHeight / 2), duration);
+      setHorizontalScrollPosition(target, Math.max(0, x * zoom - clientWidth / 2), duration);
+    };
+
     // PRIMARY CLICK EVENT
     const click = (ev: { offsetX: number; offsetY: number }) => {
       // Get the SVG hex that was clicked on
@@ -503,7 +522,10 @@ export default defineComponent({
     // Selected item
     watch(
       () => props.selectedCell,
-      () => renderSelected()
+      () => {
+        renderSelected();
+        scrollToSelected();
+      }
     );
 
     return {
