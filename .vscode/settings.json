@@ -46,5 +46,7 @@
   },
 
   "vetur.format.defaultFormatter.html": "prettyhtml",
-  "vetur.format.defaultFormatter.js": "prettier-eslint"
+  "vetur.format.defaultFormatter.js": "prettier-eslint",
+  "claudeCode.respectGitIgnore": false,
+  "claudeCode.allowDangerouslySkipPermissions": true
 }

@@ -51,6 +51,15 @@
             :options="Object.values(ECellStatus)"
           />
           <q-btn
+            v-if="campaign.data.maps[config.data.map].player === selectedID"
+            class="col-shrink"
+            dense
+            outline
+            label="Go away"
+            @click="campaign.data.maps[config.data.map].player = undefined"
+          />
+          <q-btn
+            v-else
             class="col-shrink"
             dense
             outline
@@ -333,10 +342,10 @@ export default defineComponent({
     const renderPlayer = () => {
       console.log('Render player icon');
 
+      map.find('.player').forEach((p) => p.remove());
+
       if (!campaign.data.maps[config.data.map].player) return;
       const location = campaign.data.maps[config.data.map].player as string;
-
-      map.find('.player').forEach((p) => p.remove());
 
       const size = campaign.data.maps[config.data.map].hexSize;
       const { x, y } = getXY(location);
