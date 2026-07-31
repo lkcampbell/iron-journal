@@ -267,6 +267,7 @@ export default defineComponent({
       // Create a new group
       const labels = SVG().group().addClass('labels');
       const hexSize = campaign.data.maps[config.data.map].hexSize;
+      const { x: centerX } = Hx().center();
 
       // Populate it
       const cells = campaign.data.maps[config.data.map].cells;
@@ -285,9 +286,10 @@ export default defineComponent({
               fill: colours[type] || 'white',
               weight: 'bold',
               size: campaign.data.maps[config.data.map].fonts.label.size,
+              anchor: 'middle',
             })
             .stroke({ color: 'black', width: 1 })
-            .move(x - hexSize * 0.5, y - hexSize);
+            .amove(x + centerX, y - hexSize + 3);
         }
       });
 
@@ -300,6 +302,8 @@ export default defineComponent({
       map.find('.search-label').forEach((i) => i.remove());
 
       if (!(props.searchResults != {} && props.searchResults[config.data.map])) return;
+
+      const { x: centerX } = Hx().center();
 
       // Add search results
       Object.keys(props.searchResults[config.data.map]).forEach((id) => {
@@ -322,8 +326,8 @@ export default defineComponent({
               })
               .addClass('search-label')
               .addTo(map)
-              .move(x, y + campaign.data.maps[config.data.map].hexSize * 2.5)
-              .font({ size: campaign.data.maps[config.data.map].fonts.search.size, weight: 'bold' });
+              .font({ size: campaign.data.maps[config.data.map].fonts.search.size, weight: 'bold', anchor: 'middle' })
+              .amove(x + centerX, y + campaign.data.maps[config.data.map].hexSize * 2.5 + 5);
           }
         }
       });
