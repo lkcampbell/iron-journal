@@ -5,8 +5,10 @@ import { EMapItems } from 'components/models';
 export interface ISelectedMapItem {
   map: number;
   cell: string;
-  type: EMapItems;
-  id: number;
+  // Absent when the whole cell is selected (e.g. clicking the cell frame
+  // instead of a specific item) rather than a single item within it.
+  type?: EMapItems;
+  id?: number;
 }
 
 export const useSelection = defineStore({
@@ -23,6 +25,10 @@ export const useSelection = defineStore({
       this.selected = { map, cell, type, id };
     },
 
+    selectCell(map: number, cell: string) {
+      this.selected = { map, cell };
+    },
+
     clear() {
       this.selected = null;
     },
@@ -37,12 +43,16 @@ export const useSelection = defineStore({
       );
     },
 
+    isCellSelected(map: number, cell: string): boolean {
+      return this.selected !== null && this.selected.map === map && this.selected.cell === cell;
+    },
+
     // Keep the selection pointed at the right item (or clear it) whenever an
     // item is spliced out of a map/cell/type list, regardless of which UI
     // deleted it: later items in the same list shift down an index, and the
     // selected item itself may be the one being removed.
     itemRemoved(type: EMapItems, map: number, cell: string, index: number) {
-      if (this.selected === null) return;
+      if (this.selected === null || this.selected.id === undefined) return;
       if (this.selected.map !== map || this.selected.cell !== cell || this.selected.type !== type) return;
 
       if (this.selected.id === index) {
@@ -57,7 +67,7 @@ export const useSelection = defineStore({
     // the store's splice-then-unshift order, so it also holds for a move
     // within the same cell.
     itemMoved(type: EMapItems, from: { map: number; cell: string }, to: { map: number; cell: string }, index: number) {
-      if (this.selected === null || this.selected.type !== type) return;
+      if (this.selected === null || this.selected.type !== type || this.selected.id === undefined) return;
 
       if (this.selected.map === from.map && this.selected.cell === from.cell && this.selected.id === index) {
         this.selected = { map: to.map, cell: to.cell, type, id: 0 };

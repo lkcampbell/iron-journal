@@ -56,3 +56,7 @@ ij-header {
   outline: 3px solid $selected;
   outline-offset: -3px;
 }
+
+.cell-frame-selected {
+  border-color: $selected !important;
+}

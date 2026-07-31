@@ -103,14 +103,21 @@
 
           <div
             class="q-mb-md rounded-borders q-pa-xs col-grow"
+            :class="{ 'cell-frame-selected': selection.isCellSelected(+mID, cID as string) }"
             style="border: 1px solid rgba(255, 255, 255, 0.15)"
             v-for="(cell, cID) in map"
             :key="cID"
+            @click.self="selection.selectCell(+mID, cID as string)"
           >
-            <div class="text-caption text-grey-5 q-px-xs">
+            <div class="text-caption text-grey-5 q-px-xs" @click="selection.selectCell(+mID, cID as string)">
               {{ frameLabel(+mID, cID as string) }}
             </div>
-            <q-card-section class="q-px-xs q-py-none" v-for="(itemIDs, oType) in cell" :key="oType">
+            <q-card-section
+              class="q-px-xs q-py-none"
+              v-for="(itemIDs, oType) in cell"
+              :key="oType"
+              @click.self="selection.selectCell(+mID, cID as string)"
+            >
               <div v-for="oID in itemIDs" :key="oID">
                 <div v-if="oType === EMapItems.Locations">
                   <w-location
