@@ -55,14 +55,14 @@
           class="col"
           label="Filters"
           v-model="filters"
-          :options="Object.values(EMapItems)"
+          :options="filterOpts"
+          :option-label="filterLabel"
           multiple
           clearable
           standout="bg-blue-grey text-white"
           :input-style="{ color: '#ECEFF4' }"
           dense
         />
-        <q-toggle class="col-shrink" label="Bonds only" v-model="bondsOnly" dense />
         <q-btn class="col-shrink" flat dense icon="mdi-cog" @click="openMapConfig" />
       </div>
     </div>
@@ -76,14 +76,14 @@
           class="col"
           label="Filters"
           v-model="filters"
-          :options="Object.values(EMapItems)"
+          :options="filterOpts"
+          :option-label="filterLabel"
           multiple
           clearable
           standout="bg-blue-grey text-white"
           :input-style="{ color: '#ECEFF4' }"
           dense
         />
-        <q-toggle class="col-shrink" label="Bonds only" v-model="bondsOnly" dense />
         <q-btn class="col-shrink" flat dense icon="mdi-cog" @click="openMapConfig" />
       </div>
     </div>
@@ -220,9 +220,20 @@ export default defineComponent({
     // Go back to the default map if need be
     if (!campaign.data.maps[config.data.map]) config.data.map = 0;
 
+    const EBonds = 'Bonds';
+    type FilterOpt = EMapItems | typeof EBonds;
+    const filterOpts: FilterOpt[] = [...Object.values(EMapItems), EBonds];
+
+    const filterLabels: Record<FilterOpt, string> = {
+      [EMapItems.Sites]: 'Sites',
+      [EMapItems.Locations]: 'Locations',
+      [EMapItems.NPCs]: 'NPCs',
+      [EBonds]: 'Bonds',
+    };
+    const filterLabel = (opt: FilterOpt): string => filterLabels[opt];
+
     const searchText = ref('');
-    const filters = ref([] as EMapItems[]);
-    const bondsOnly = ref(false);
+    const filters = ref([] as FilterOpt[]);
     const showMapConfig = ref(false);
 
     const mapOpts = computed((): ISelectOpt[] => {
@@ -236,8 +247,16 @@ export default defineComponent({
       return out;
     });
 
+    const typeFilters = computed((): EMapItems[] => {
+      return (filters.value ?? []).filter((f): f is EMapItems => f !== EBonds);
+    });
+
+    const bondsSelected = computed((): boolean => {
+      return (filters.value ?? []).includes(EBonds);
+    });
+
     const applyFilters = computed((): boolean => {
-      return filters.value != null && filters.value.length > 0;
+      return typeFilters.value.length > 0;
     });
 
     const t = (s: string): boolean => {
@@ -292,18 +311,18 @@ export default defineComponent({
 
     const show = {
       locations: (o: ILocation): boolean => {
-        if (applyFilters.value && !filters.value.includes(EMapItems.Locations)) return false;
-        if (bondsOnly.value && !o.bond) return false;
+        if (applyFilters.value && !typeFilters.value.includes(EMapItems.Locations)) return false;
+        if (bondsSelected.value && !o.bond) return false;
         return t(o.name) || t(o.descriptor);
       },
       npcs: (o: INPC): boolean => {
-        if (applyFilters.value && !filters.value.includes(EMapItems.NPCs)) return false;
-        if (bondsOnly.value && !o.bond) return false;
+        if (applyFilters.value && !typeFilters.value.includes(EMapItems.NPCs)) return false;
+        if (bondsSelected.value && !o.bond) return false;
         return t(o.name) || t(o.kin) || t(o.notes);
       },
       sites: (o: ISite): boolean => {
-        if (applyFilters.value && !filters.value.includes(EMapItems.Sites)) return false;
-        if (bondsOnly.value) return false;
+        if (applyFilters.value && !typeFilters.value.includes(EMapItems.Sites)) return false;
+        if (bondsSelected.value) return false;
         return t(o.name);
       },
     };
@@ -414,8 +433,9 @@ export default defineComponent({
 
       EMapItems,
       filters,
+      filterOpts,
+      filterLabel,
       searchText,
-      bondsOnly,
       results,
       show,
       CellLabel,
