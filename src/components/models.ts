@@ -218,7 +218,6 @@ export interface ISearchResults {
 
 export enum ECellStatus {
   Empty = 'empty',
-  Route = 'route',
   Location = 'location',
 }
 

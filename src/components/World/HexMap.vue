@@ -225,10 +225,6 @@ export default defineComponent({
               cell.fill(colours.location);
               break;
 
-            case ECellStatus.Route:
-              cell.fill(colours.route);
-              break;
-
             default:
               cell.fill('none');
               break;
@@ -379,22 +375,11 @@ export default defineComponent({
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const id = h(hex!.x, hex!.y);
 
-      // If no data exists for the cell then create it initially and make it a route
-      if (
-        !campaign.data.maps[config.data.map].cells[id] ||
-        campaign.data.maps[config.data.map].cells[id].stat == ECellStatus.Empty
-      ) {
-        // Set hex fill here (rather than trigger a map re-render) for better mobile performance
-        map.find(`.${id}`).forEach((c) => c.fill(colours.route));
-
-        const c = NewCell(id);
-        c.stat = ECellStatus.Route;
-        campaign.data.maps[config.data.map].cells[id] = c;
-        return;
+      // Ensure cell data exists before opening the dialog
+      if (!campaign.data.maps[config.data.map].cells[id]) {
+        campaign.data.maps[config.data.map].cells[id] = NewCell(id);
       }
 
-      // If we've reached here then we probably want to open the dialog and do something with it
-      // const c = campaign.data.maps[config.data.map].cells[id]
       selectedID.value = id;
       showDialog.value = true;
     };
