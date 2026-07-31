@@ -44,7 +44,7 @@
         :icon="boxIcon(value)"
         @click="boxIncrement(index)"
       />
-      <q-btn icon="mdi-dice-6" flat dense :size="btnSize" @click="conclude">
+      <q-btn v-if="showConcludeBtn" icon="mdi-dice-6" flat dense :size="btnSize" @click="conclude">
         <q-tooltip>Make a progress roll</q-tooltip>
       </q-btn>
     </div>
@@ -113,6 +113,10 @@ export default defineComponent({
       default: true,
     },
     showMenaceBtn: {
+      type: Boolean,
+      default: true,
+    },
+    showConcludeBtn: {
       type: Boolean,
       default: true,
     },

@@ -256,9 +256,11 @@
     <progress-track
       class="q-mb-md"
       v-model="campaign.data.character.bonds"
+      :showName="false"
       :showDifficulty="false"
       :setDifficulty="5"
       :showMenaceBtn="false"
+      :showConcludeBtn="false"
     />
 
     <q-separator />
