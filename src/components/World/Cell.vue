@@ -3,15 +3,11 @@
   <div>
     <div class="row full-width q-gutter-sm justify-between items-center">
       <q-toggle class="col" icon="mdi-cog" v-model="showControls" label="Move Controls" />
-      <q-select
-        class="col-shrink"
-        label="Add"
-        v-model="addSelect"
-        :options="Object.values(EMapItems)"
-        dense
-        borderless
-      />
-      <q-btn class="col-shrink" icon="add" flat dense @click="add" />
+      <div class="row q-gutter-xs justify-end col-shrink">
+        <q-btn dense outline label="Add Location" @click="add(EMapItems.Locations)" />
+        <q-btn dense outline label="Add Site" @click="add(EMapItems.Sites)" />
+        <q-btn dense outline label="Add NPC" @click="add(EMapItems.NPCs)" />
+      </div>
     </div>
     <div v-if="show(EMapItems.Locations)">
       <w-location
@@ -80,27 +76,21 @@ export default defineComponent({
   },
   setup(props) {
     const campaign = useCampaign();
-    const addSelect = ref('Select');
-    const add = () => {
-      switch (addSelect.value) {
+    const add = (type: EMapItems) => {
+      switch (type) {
         case EMapItems.NPCs:
           campaign.data.maps[props.mapID].cells[props.cellID].npcs.unshift(NewNPC());
-          campaign.syncCellStat(props.mapID, props.cellID);
           break;
 
         case EMapItems.Sites:
           campaign.data.maps[props.mapID].cells[props.cellID].sites.unshift(NewSite());
-          campaign.syncCellStat(props.mapID, props.cellID);
           break;
 
         case EMapItems.Locations:
           campaign.data.maps[props.mapID].cells[props.cellID].locations.unshift(NewLocation());
-          campaign.syncCellStat(props.mapID, props.cellID);
-          break;
-
-        default:
           break;
       }
+      campaign.syncCellStat(props.mapID, props.cellID);
     };
 
     const show = (type: EMapItems): boolean => {
@@ -117,7 +107,6 @@ export default defineComponent({
       campaign,
 
       EMapItems,
-      addSelect,
       add,
       show,
       showControls,
