@@ -117,8 +117,8 @@
                   <w-location
                     v-model="campaign.data.maps[+mID].cells[cID][oType][+oID]"
                     @delete="campaign.removeObject(oType, +mID, cID as string, oID)"
-                    :selected="isSelected(+mID, cID as string, oType, +oID)"
-                    @select="selectItem(+mID, cID as string, oType, +oID)"
+                    :selected="selection.isSelected(+mID, cID as string, oType, +oID)"
+                    @select="selection.select(+mID, cID as string, oType, +oID)"
                   />
                 </div>
 
@@ -126,8 +126,8 @@
                   <w-site
                     v-model="campaign.data.maps[+mID].cells[cID][oType][+oID]"
                     @delete="campaign.removeObject(oType, +mID, cID as string, oID)"
-                    :selected="isSelected(+mID, cID as string, oType, +oID)"
-                    @select="selectItem(+mID, cID as string, oType, +oID)"
+                    :selected="selection.isSelected(+mID, cID as string, oType, +oID)"
+                    @select="selection.select(+mID, cID as string, oType, +oID)"
                   />
                 </div>
 
@@ -135,8 +135,8 @@
                   <w-npc
                     v-model="campaign.data.maps[+mID].cells[cID][oType][+oID]"
                     @delete="campaign.removeObject(oType, +mID, cID as string, oID)"
-                    :selected="isSelected(+mID, cID as string, oType, +oID)"
-                    @select="selectItem(+mID, cID as string, oType, +oID)"
+                    :selected="selection.isSelected(+mID, cID as string, oType, +oID)"
+                    @select="selection.select(+mID, cID as string, oType, +oID)"
                   />
                 </div>
               </div>
@@ -200,12 +200,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, ref } from 'vue';
+import { defineComponent, computed, ref, watch } from 'vue';
 
 import { ISelectOpt, EMapItems, ISearchResults, ILocation, INPC, ISite } from 'src/components/models';
 
 import { useCampaign } from 'src/store/campaign';
 import { useConfig } from 'src/store/config';
+import { useSelection } from 'src/store/selection';
 
 import { CellLabel, NewMap } from 'src/lib/world';
 import { estimateHexH, estimateHexW } from 'src/lib/util';
@@ -222,6 +223,7 @@ export default defineComponent({
   setup() {
     const campaign = useCampaign();
     const config = useConfig();
+    const selection = useSelection();
 
     // Go back to the default map if need be
     if (!campaign.data.maps[config.data.map]) config.data.map = 0;
@@ -242,32 +244,19 @@ export default defineComponent({
     const filters = ref([] as FilterOpt[]);
     const showMapConfig = ref(false);
 
-    interface ISelected {
-      map: number;
-      cell: string;
-      type: EMapItems;
-      id: number;
-    }
-    const selected = ref(null as ISelected | null);
-
-    const isSelected = (mID: number, cID: string, oType: EMapItems, oID: number): boolean => {
-      return (
-        selected.value !== null &&
-        selected.value.map === mID &&
-        selected.value.cell === cID &&
-        selected.value.type === oType &&
-        selected.value.id === oID
-      );
-    };
-
-    const selectItem = (mID: number, cID: string, oType: EMapItems, oID: number) => {
-      selected.value = { map: mID, cell: cID, type: oType, id: oID };
-      if (config.data.map !== mID) config.data.map = mID;
-    };
+    // Whenever the selection points at a different map — from clicking an
+    // item in the list, or from moving the selected item to another map —
+    // switch the displayed map to follow it.
+    watch(
+      () => selection.selected,
+      (sel) => {
+        if (sel !== null && sel.map !== config.data.map) config.data.map = sel.map;
+      },
+    );
 
     const selectedCell = computed((): string | null => {
-      if (selected.value === null || selected.value.map !== config.data.map) return null;
-      return selected.value.cell;
+      if (selection.selected === null || selection.selected.map !== config.data.map) return null;
+      return selection.selected.cell;
     });
 
     const mapOpts = computed((): ISelectOpt[] => {
@@ -474,9 +463,7 @@ export default defineComponent({
       show,
       CellLabel,
 
-      selected,
-      isSelected,
-      selectItem,
+      selection,
       selectedCell,
     };
   },

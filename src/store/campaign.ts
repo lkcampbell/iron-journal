@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ECellStatus, EMapItems, ICampaign, ILocation, INPC, ISite } from 'components/models';
 import { NewCampaign } from 'src/lib/campaign';
 import { useConfig } from './config';
+import { useSelection } from './selection';
 import { db } from 'src/lib/db';
 import { now } from 'src/lib/util';
 import { exportFile } from 'quasar';
@@ -29,30 +30,34 @@ export const useCampaign = defineStore({
     },
 
     moveSite(index: number, from: { map: number; cell: string }, to: { map: number; cell: string }) {
+      useSelection().itemMoved(EMapItems.Sites, from, to, index);
       const o = JSON.parse(JSON.stringify(this.data.maps[from.map].cells[from.cell].sites[index])) as ISite;
-      this.data.maps[to.map].cells[to.cell].sites.unshift(o);
       this.data.maps[from.map].cells[from.cell].sites.splice(index, 1);
+      this.data.maps[to.map].cells[to.cell].sites.unshift(o);
       this.syncCellStat(to.map, to.cell);
       this.syncCellStat(from.map, from.cell);
     },
 
     moveLocation(index: number, from: { map: number; cell: string }, to: { map: number; cell: string }) {
+      useSelection().itemMoved(EMapItems.Locations, from, to, index);
       const o = JSON.parse(JSON.stringify(this.data.maps[from.map].cells[from.cell].locations[index])) as ILocation;
-      this.data.maps[to.map].cells[to.cell].locations.unshift(o);
       this.data.maps[from.map].cells[from.cell].locations.splice(index, 1);
+      this.data.maps[to.map].cells[to.cell].locations.unshift(o);
       this.syncCellStat(to.map, to.cell);
       this.syncCellStat(from.map, from.cell);
     },
 
     moveNPC(index: number, from: { map: number; cell: string }, to: { map: number; cell: string }) {
+      useSelection().itemMoved(EMapItems.NPCs, from, to, index);
       const o = JSON.parse(JSON.stringify(this.data.maps[from.map].cells[from.cell].npcs[index])) as INPC;
-      this.data.maps[to.map].cells[to.cell].npcs.unshift(o);
       this.data.maps[from.map].cells[from.cell].npcs.splice(index, 1);
+      this.data.maps[to.map].cells[to.cell].npcs.unshift(o);
       this.syncCellStat(to.map, to.cell);
       this.syncCellStat(from.map, from.cell);
     },
 
     removeObject(type: EMapItems, map: number, cell: string, index: number) {
+      useSelection().itemRemoved(type, map, cell, index);
       this.data.maps[map].cells[cell][type].splice(index, 1);
       this.syncCellStat(map, cell);
     },
