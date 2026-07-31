@@ -28,8 +28,16 @@
     </q-page-container>
   </q-layout>
 
-  <q-dialog v-model="showDialog" transition-show="fade" transition-hide="fade">
-    <q-card class="card-bg" style="min-width: 40%">
+  <q-dialog v-model="showDialog" seamless transition-show="fade" transition-hide="fade">
+    <q-card class="card-bg" :style="{ minWidth: '40%', transform: `translate(${dialogPos.x}px, ${dialogPos.y}px)` }">
+      <div
+        class="row justify-center items-center bg-dark text-caption q-py-xs"
+        style="cursor: move"
+        v-touch-pan.mouse.prevent.stop="onDialogDrag"
+      >
+        Cell Settings
+      </div>
+
       <q-card-section class="row justify-between items-center bg-secondary text-h5">
         <q-input
           class="col"
@@ -113,6 +121,17 @@ export default defineComponent({
     const showDialog = ref(false);
     const selectedID = ref('');
     const mapLoading = ref(true);
+
+    const dialogPos = ref({ x: 0, y: 0 });
+    const dragStart = ref({ x: 0, y: 0 });
+
+    const onDialogDrag = (evt: { isFirst: boolean; offset: { x: number; y: number } }) => {
+      if (evt.isFirst) dragStart.value = { ...dialogPos.value };
+      dialogPos.value = {
+        x: dragStart.value.x + evt.offset.x,
+        y: dragStart.value.y + evt.offset.y,
+      };
+    };
 
     const onScroll = (y: number, x: number) => {
       console.log(x, y);
@@ -465,6 +484,8 @@ export default defineComponent({
       showDialog,
       selectedID,
       ECellStatus,
+      dialogPos,
+      onDialogDrag,
     };
   },
 });
