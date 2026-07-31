@@ -85,14 +85,17 @@ export default defineComponent({
       switch (addSelect.value) {
         case EMapItems.NPCs:
           campaign.data.maps[props.mapID].cells[props.cellID].npcs.unshift(NewNPC());
+          campaign.syncCellStat(props.mapID, props.cellID);
           break;
 
         case EMapItems.Sites:
           campaign.data.maps[props.mapID].cells[props.cellID].sites.unshift(NewSite());
+          campaign.syncCellStat(props.mapID, props.cellID);
           break;
 
         case EMapItems.Locations:
           campaign.data.maps[props.mapID].cells[props.cellID].locations.unshift(NewLocation());
+          campaign.syncCellStat(props.mapID, props.cellID);
           break;
 
         default:

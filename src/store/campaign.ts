@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { EMapItems, ICampaign, ILocation, INPC, ISite } from 'components/models';
+import { ECellStatus, EMapItems, ICampaign, ILocation, INPC, ISite } from 'components/models';
 import { NewCampaign } from 'src/lib/campaign';
 import { useConfig } from './config';
 import { db } from 'src/lib/db';
@@ -16,26 +16,45 @@ export const useCampaign = defineStore({
   },
 
   actions: {
+    // A cell's status tracks Location automatically once it holds a Site,
+    // Location, or NPC — even an NPC's location is a location, it's just one
+    // that can move to a different cell later.
+    syncCellStat(map: number, cell: string) {
+      const c = this.data.maps[map].cells[cell];
+      if (c.sites.length > 0 || c.locations.length > 0 || c.npcs.length > 0) {
+        c.stat = ECellStatus.Location;
+      } else if (c.stat === ECellStatus.Location) {
+        c.stat = ECellStatus.Empty;
+      }
+    },
+
     moveSite(index: number, from: { map: number; cell: string }, to: { map: number; cell: string }) {
       const o = JSON.parse(JSON.stringify(this.data.maps[from.map].cells[from.cell].sites[index])) as ISite;
       this.data.maps[to.map].cells[to.cell].sites.unshift(o);
       this.data.maps[from.map].cells[from.cell].sites.splice(index, 1);
+      this.syncCellStat(to.map, to.cell);
+      this.syncCellStat(from.map, from.cell);
     },
 
     moveLocation(index: number, from: { map: number; cell: string }, to: { map: number; cell: string }) {
       const o = JSON.parse(JSON.stringify(this.data.maps[from.map].cells[from.cell].locations[index])) as ILocation;
       this.data.maps[to.map].cells[to.cell].locations.unshift(o);
       this.data.maps[from.map].cells[from.cell].locations.splice(index, 1);
+      this.syncCellStat(to.map, to.cell);
+      this.syncCellStat(from.map, from.cell);
     },
 
     moveNPC(index: number, from: { map: number; cell: string }, to: { map: number; cell: string }) {
       const o = JSON.parse(JSON.stringify(this.data.maps[from.map].cells[from.cell].npcs[index])) as INPC;
       this.data.maps[to.map].cells[to.cell].npcs.unshift(o);
       this.data.maps[from.map].cells[from.cell].npcs.splice(index, 1);
+      this.syncCellStat(to.map, to.cell);
+      this.syncCellStat(from.map, from.cell);
     },
 
     removeObject(type: EMapItems, map: number, cell: string, index: number) {
       this.data.maps[map].cells[cell][type].splice(index, 1);
+      this.syncCellStat(map, cell);
     },
 
     appendToJournal(index: number, text: string) {

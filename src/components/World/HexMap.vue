@@ -46,7 +46,7 @@
           <q-select
             class="col-grow"
             label="Set cell status"
-            hint="Set to 'location' to save Oracle generated content and enable search for this cell"
+            hint="Automatically set to 'location' when a Site, Location, or NPC is added here. Only 'location' cells get a label/icon on the map."
             v-model="campaign.data.maps[config.data.map].cells[selectedID].stat"
             :options="Object.values(ECellStatus)"
           />
@@ -311,7 +311,7 @@ export default defineComponent({
       Object.keys(cells).forEach((id) => {
         const c = cells[id];
 
-        if (c.stat === ECellStatus.Location) {
+        if (c.stat === ECellStatus.Location || c.npcs.length > 0) {
           const { x, y } = getXY(id);
 
           const size = campaign.data.maps[config.data.map].hexSize;
