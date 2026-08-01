@@ -234,7 +234,10 @@ export default defineComponent({
       grid.forEach((hex) => {
         const { x, y } = hex.toPoint();
         const id = h(hex.x, hex.y);
-        hexSymbol.clone().addClass(id).addTo(map).translate(x, y);
+        const hexEl = hexSymbol.clone().addClass(id).addTo(map).translate(x, y);
+
+        hexEl.mouseenter(() => map.find(`.label.${id}, .search-label.${id}`).forEach((l) => (l.node.style.opacity = '1')));
+        hexEl.mouseleave(() => map.find(`.label.${id}, .search-label.${id}`).forEach((l) => (l.node.style.opacity = '0')));
       });
 
       const bgk = SVG().image(campaign.data.maps[config.data.map].image);
@@ -281,6 +284,7 @@ export default defineComponent({
           SVG()
             .text(label)
             .addClass('label')
+            .addClass(id)
             .addTo(labels)
             .font({
               fill: colours[type] || 'white',
@@ -325,6 +329,7 @@ export default defineComponent({
                 });
               })
               .addClass('search-label')
+              .addClass(id)
               .addTo(map)
               .font({ size: campaign.data.maps[config.data.map].fonts.search.size, weight: 'bold', anchor: 'middle' })
               .amove(x + centerX, y + campaign.data.maps[config.data.map].hexSize * 2.5 + 5);
@@ -358,8 +363,14 @@ export default defineComponent({
             .addTo(icons)
             .move(x + size / 2.6, y + size / 2);
 
-          img.mouseenter(() => img.animate(100).transform({ scale: 1.3 }));
-          img.mouseleave(() => img.animate(100).transform({ scale: 1 }));
+          img.mouseenter(() => {
+            img.animate(100).transform({ scale: 1.3 });
+            map.find(`.label.${id}, .search-label.${id}`).forEach((l) => (l.node.style.opacity = '1'));
+          });
+          img.mouseleave(() => {
+            img.animate(100).transform({ scale: 1 });
+            map.find(`.label.${id}, .search-label.${id}`).forEach((l) => (l.node.style.opacity = '0'));
+          });
 
           const hasBond = c.npcs.some((n) => n.bond) || c.locations.some((l) => l.bond);
           if (hasBond) img.css({ filter: bondIconFilter });
@@ -549,7 +560,13 @@ export default defineComponent({
 svg polygon.hex
   stroke: rgba(256, 256, 256, 0.1)
   stroke-width: 1pt
+  pointer-events: fill
 
 svg .search-label, .label
   paint-order: stroke fill
+
+svg .label, svg .search-label
+  opacity: 0
+  pointer-events: none
+  transition: opacity 0.15s ease
 </style>
