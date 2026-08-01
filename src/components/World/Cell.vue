@@ -2,7 +2,7 @@
   <!-- content -->
   <div>
     <div class="row full-width q-gutter-sm justify-between items-center">
-      <q-toggle class="col" icon="mdi-cog" v-model="showControls" label="Move Controls" />
+      <q-toggle class="col" icon="mdi-cog" v-model="config.data.showMoveControls" label="Move Controls" />
       <div class="row q-gutter-xs justify-end col-shrink">
         <q-btn dense outline label="Add Location" @click="add(EMapItems.Locations)" />
         <q-btn dense outline label="Add Site" @click="add(EMapItems.Sites)" />
@@ -16,7 +16,7 @@
         :key="i"
         v-model="campaign.data.maps[mapID].cells[cellID].locations[i]"
         @delete="campaign.removeObject(EMapItems.Locations, mapID, cellID, i)"
-        :controls="showControls"
+        :controls="config.data.showMoveControls"
         @move="campaign.moveLocation(i, { map: mapID, cell: cellID }, $event)"
       />
     </div>
@@ -28,7 +28,7 @@
         :key="i"
         v-model="campaign.data.maps[mapID].cells[cellID].npcs[i]"
         @delete="campaign.removeObject(EMapItems.NPCs, mapID, cellID, i)"
-        :controls="showControls"
+        :controls="config.data.showMoveControls"
         @move="campaign.moveNPC(i, { map: mapID, cell: cellID }, $event)"
       />
     </div>
@@ -40,7 +40,7 @@
         :key="i"
         v-model="campaign.data.maps[mapID].cells[cellID].sites[i]"
         @delete="campaign.removeObject(EMapItems.Sites, mapID, cellID, i)"
-        :controls="showControls"
+        :controls="config.data.showMoveControls"
         @move="campaign.moveSite(i, { map: mapID, cell: cellID }, $event)"
       />
     </div>
@@ -48,7 +48,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent } from 'vue';
 
 import { EMapItems } from '../models';
 
@@ -101,7 +101,6 @@ export default defineComponent({
     };
 
     const config = useConfig();
-    const showControls = ref(false);
     return {
       config,
       campaign,
@@ -109,7 +108,6 @@ export default defineComponent({
       EMapItems,
       add,
       show,
-      showControls,
     };
   },
 });

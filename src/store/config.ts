@@ -19,6 +19,7 @@ export const useConfig = defineStore({
         try {
           this.data = (await db.config.where('id').equals(1).first()) as IConfig;
           this.data.journalTab ??= false;
+          this.data.showMoveControls ??= false;
           const campaign = useCampaign();
           if (!campaign.data.maps[this.data.map]) this.data.map = 0;
         } catch (err) {

@@ -16,6 +16,7 @@ export interface IConfig {
   index: IIndexItem[];
   edit: boolean;
   journalTab?: boolean;
+  showMoveControls?: boolean;
   saving: boolean;
   map: number;
   mapLoading?: boolean;
