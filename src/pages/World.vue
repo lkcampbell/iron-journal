@@ -38,7 +38,7 @@
           dense
           @click="if (campaign.data.maps[config.data.map].zoom > 1) campaign.data.maps[config.data.map].zoom -= 0.5;"
         />
-        {{ campaign.data.maps[config.data.map].zoom }}
+        <span class="inline-block text-center" style="width: 24px">{{ campaign.data.maps[config.data.map].zoom }}</span>
         <q-btn icon="mdi-magnify-plus" flat dense @click="campaign.data.maps[config.data.map].zoom += 0.5" />
       </div>
     </div>
