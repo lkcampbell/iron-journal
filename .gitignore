@@ -26,9 +26,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Local-only reference materials (not for distribution)
-/references
-
 # Editor directories and files
 .idea
 *.suo
