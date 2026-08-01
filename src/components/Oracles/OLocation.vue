@@ -67,9 +67,11 @@ export default defineComponent({
         useCampaign().data.maps[args.map].cells[args.cell].locations.unshift(storeCopy);
       },
     };
-    const locationOpts = /(coast|island)/i.test(data.value.region)
-      ? oracleOpts(Location.CoastalWatersLocation)
-      : oracleOpts(Location.Location);
+    const locationOpts = (
+      /(coast|island)/i.test(data.value.region)
+        ? oracleOpts(Location.CoastalWatersLocation)
+        : oracleOpts(Location.Location)
+    ).sort((a, b) => a.localeCompare(b));
 
     return {
       data,
