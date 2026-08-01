@@ -5,7 +5,14 @@ import {
   createWebHashHistory,
   createWebHistory
 } from 'vue-router'
+import { nextTick } from 'vue'
 import routes from './routes'
+
+// Tab switches (Campaign/Character/Journal/Challenges/World) are route
+// pushes, not browser back/forward, so vue-router's built-in
+// `savedPosition` (popstate-only) never fires for them. Track each route's
+// scroll offset ourselves so every tab remembers where you left it.
+const scrollPositions = new Map<string, number>()
 
 /*
  * If not building with SSR mode, you can
@@ -22,7 +29,12 @@ export default route(function (/* { store, ssrContext } */) {
     : (process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory)
 
   const Router = createRouter({
-    scrollBehavior: () => ({ left: 0, top: 0 }),
+    scrollBehavior(to) {
+      const saved = scrollPositions.get(to.fullPath)
+      return new Promise((resolve) => {
+        void nextTick(() => resolve({ left: 0, top: saved ?? 0 }))
+      })
+    },
     routes,
 
     // Leave this as is and make changes in quasar.conf.js instead!
@@ -31,6 +43,10 @@ export default route(function (/* { store, ssrContext } */) {
     history: createHistory(
       process.env.MODE === 'ssr' ? void 0 : process.env.VUE_ROUTER_BASE
     )
+  })
+
+  Router.beforeEach((to, from) => {
+    scrollPositions.set(from.fullPath, window.scrollY)
   })
 
   return Router

@@ -85,7 +85,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, PropType, watch, Ref } from 'vue';
+import { defineComponent, nextTick, onMounted, ref, PropType, watch, Ref } from 'vue';
 import { dom, scroll, useQuasar } from 'quasar';
 
 import { ECellStatus, EMapItems, ISearchResults } from '../models';
@@ -190,12 +190,18 @@ export default defineComponent({
       renderSearch();
       renderPlayer();
       renderSelected();
-      scrollToSelected();
       map.transform({
         origin: [0, 0],
         scale: campaign.data.maps[config.data.map].zoom,
       });
       mapLoading.value = false;
+
+      // The map div is `v-show`n only once mapLoading is false, and scroll
+      // containers report zero scrollHeight while hidden — so scrolling must
+      // wait until after that DOM update is flushed.
+      await nextTick();
+      scrollToSelected();
+      restoreScroll();
     };
 
     // Render functions
@@ -436,6 +442,19 @@ export default defineComponent({
 
       setVerticalScrollPosition(target, Math.max(0, y * zoom - clientHeight / 2), duration);
       setHorizontalScrollPosition(target, Math.max(0, x * zoom - clientWidth / 2), duration);
+    };
+
+    // Restores the scroll position saved by `onScroll` the last time this map
+    // was viewed, so switching tabs and back doesn't reset it. Only applies
+    // when there's no selected cell, since scrollToSelected takes priority.
+    const restoreScroll = () => {
+      if (props.selectedCell || !hexmap.value) return;
+
+      const target = getScrollTarget(hexmap.value);
+      const { scrollX, scrollY } = campaign.data.maps[config.data.map];
+
+      if (scrollX) setHorizontalScrollPosition(target, scrollX, 0);
+      if (scrollY) setVerticalScrollPosition(target, scrollY, 0);
     };
 
     // PRIMARY CLICK EVENT
