@@ -28,7 +28,7 @@
     </q-page-container>
   </q-layout>
 
-  <q-dialog v-model="showDialog" seamless transition-show="fade" transition-hide="fade">
+  <q-dialog v-model="showDialog" seamless no-refocus transition-show="fade" transition-hide="fade">
     <q-card class="card-bg" :style="{ minWidth: '40%', transform: `translate(${dialogPos.x}px, ${dialogPos.y}px)` }">
       <div
         class="row justify-center items-center bg-dark text-caption q-py-xs"
@@ -96,7 +96,7 @@ import { useConfig } from 'src/store/config';
 import { Svg, SVG } from '@svgdotjs/svg.js';
 import { extendHex, defineGrid, HexFactory, Grid, Hex } from 'honeycomb-grid';
 import { CellLabel, NewCell } from 'src/lib/world';
-import { bondIconFilter, colours } from 'src/lib/colours';
+import { bondIconFilter, colours, playerIconFilter } from 'src/lib/colours';
 import { icon } from 'src/lib/icons';
 import { estimateHexH, estimateHexW, sleep } from 'src/lib/util';
 
@@ -397,7 +397,8 @@ export default defineComponent({
         .size(size, size)
         .addTo(map)
         .move(x + size, y)
-        .front();
+        .front()
+        .css({ filter: playerIconFilter });
     };
 
     const renderSelected = () => {
