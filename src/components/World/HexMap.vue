@@ -149,6 +149,23 @@ export default defineComponent({
       return `h-${x}-${y}`;
     };
 
+    // Labels are only shown on hover, but they can share a hex with the
+    // player marker or the selected-hex outline, which are drawn (and
+    // re-fronted) independently. SVG has no z-index, so "always on top" has
+    // to be enforced by moving these nodes to the end of their parent's
+    // paint order every time they're revealed.
+    const showLabel = (id: string) => {
+      map.find('.labels').forEach((g) => g.front());
+      map.find(`.label.${id}, .search-label.${id}`).forEach((l) => {
+        l.front();
+        l.node.style.opacity = '1';
+      });
+    };
+
+    const hideLabel = (id: string) => {
+      map.find(`.label.${id}, .search-label.${id}`).forEach((l) => (l.node.style.opacity = '0'));
+    };
+
     const width = (): number => {
       if (campaign.data.maps[config.data.map].hexW) return campaign.data.maps[config.data.map].hexW as number;
 
@@ -242,8 +259,8 @@ export default defineComponent({
         const id = h(hex.x, hex.y);
         const hexEl = hexSymbol.clone().addClass(id).addTo(map).translate(x, y);
 
-        hexEl.mouseenter(() => map.find(`.label.${id}, .search-label.${id}`).forEach((l) => (l.node.style.opacity = '1')));
-        hexEl.mouseleave(() => map.find(`.label.${id}, .search-label.${id}`).forEach((l) => (l.node.style.opacity = '0')));
+        hexEl.mouseenter(() => showLabel(id));
+        hexEl.mouseleave(() => hideLabel(id));
       });
 
       const bgk = SVG().image(campaign.data.maps[config.data.map].image);
@@ -371,11 +388,11 @@ export default defineComponent({
 
           img.mouseenter(() => {
             img.animate(100).transform({ scale: 1.3 });
-            map.find(`.label.${id}, .search-label.${id}`).forEach((l) => (l.node.style.opacity = '1'));
+            showLabel(id);
           });
           img.mouseleave(() => {
             img.animate(100).transform({ scale: 1 });
-            map.find(`.label.${id}, .search-label.${id}`).forEach((l) => (l.node.style.opacity = '0'));
+            hideLabel(id);
           });
 
           const hasBond = c.npcs.some((n) => n.bond) || c.locations.some((l) => l.bond);
