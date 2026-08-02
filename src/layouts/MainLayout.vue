@@ -2,7 +2,7 @@
   <q-layout view="hHh lpR fFf">
     <q-header elevated class="bg-secondary text-white" height-hint="98">
       <q-toolbar>
-        <q-btn dense flat icon="menu" @click="toggleLeftDrawer" />
+        <q-btn ref="leftDrawerToggleBtn" dense flat icon="menu" @click="toggleLeftDrawer" />
 
         <q-toolbar-title class="text-h6 norse">
           IRON JOURNAL <span class="title-pipe">|</span> IRONSWORN
@@ -33,7 +33,7 @@
       </q-tabs>
     </q-header>
 
-    <q-drawer elevated overlay v-model="leftDrawerOpen" side="left" bordered>
+    <q-drawer ref="leftDrawerEl" elevated overlay v-model="leftDrawerOpen" side="left" bordered>
       <!-- left drawer content -->
       <q-btn class="full-width" label="New Campaign" flat @click="addCampaign" icon-right="add" />
       <q-list>
@@ -316,7 +316,7 @@
 
 <script lang="ts">
 /* eslint-disable no-unused-vars */
-import { ref, defineComponent, computed } from 'vue';
+import { ref, defineComponent, computed, onMounted, onBeforeUnmount } from 'vue';
 
 import { useCampaign } from 'src/store/campaign';
 import { useConfig } from 'src/store/config';
@@ -333,7 +333,20 @@ export default defineComponent({
   components: { Oracles, Moves, Roller, Journal },
   setup() {
     const leftDrawerOpen = ref(false);
+    const leftDrawerEl = ref(null);
+    const leftDrawerToggleBtn = ref(null);
     const rightDrawerOpen = ref(false);
+
+    const handleLeftDrawerOutsideClick = (event: MouseEvent) => {
+      if (!leftDrawerOpen.value) return;
+      const target = event.target as Node;
+      const drawerNode = (leftDrawerEl.value as unknown as { $el: HTMLElement } | null)?.$el;
+      const toggleNode = (leftDrawerToggleBtn.value as unknown as { $el: HTMLElement } | null)?.$el;
+      if (drawerNode?.contains(target) || toggleNode?.contains(target)) return;
+      leftDrawerOpen.value = false;
+    };
+    onMounted(() => document.addEventListener('click', handleLeftDrawerOutsideClick));
+    onBeforeUnmount(() => document.removeEventListener('click', handleLeftDrawerOutsideClick));
 
     const campaign = useCampaign();
     const config = useConfig();
@@ -396,6 +409,8 @@ export default defineComponent({
 
     return {
       leftDrawerOpen,
+      leftDrawerEl,
+      leftDrawerToggleBtn,
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;
       },
