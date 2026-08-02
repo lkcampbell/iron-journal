@@ -32,11 +32,38 @@
         ],
         ['ordered', 'unordered'],
         ['bold', 'italic', 'strike', 'underline'],
+        [
+          {
+            icon: $q.iconSet.editor.size,
+            fixedLabel: true,
+            list: 'no-icons',
+            options: ['size-1', 'size-2', 'size-3', 'size-4', 'size-5', 'size-6', 'size-7'],
+          },
+          'color',
+          'hr',
+        ],
         ['undo', 'redo'],
         ['image'],
       ]"
       dense
-    />
+    >
+      <template v-slot:color>
+        <q-btn flat dense icon="format_color_text" :style="{ color: currentColor }">
+          <!-- no-focus: QMenu's default focus trap fights QEditor's own
+          focus-then-restore-selection logic in runCmd, silently dropping
+          the foreColor command. -->
+          <q-menu ref="colorMenu" no-focus>
+            <q-color
+              :model-value="currentColor"
+              default-view="palette"
+              no-header
+              no-footer
+              @update:model-value="setColor"
+            />
+          </q-menu>
+        </q-btn>
+      </template>
+    </q-editor>
     <div class="q-pb-sm" />
   </q-expansion-item>
 </template>
@@ -51,6 +78,10 @@ import IInput from 'src/components/Widgets/IInput.vue';
 
 interface IQEditorRef {
   runCmd: (cmd: string, param?: string) => void;
+}
+
+interface IQMenuRef {
+  hide: () => void;
 }
 
 export default defineComponent({
@@ -101,6 +132,14 @@ export default defineComponent({
     const insertImage = (html: string) => {
       editor.value?.runCmd('insertHTML', html);
     };
+    const currentColor = ref<string | null>(null);
+    const colorMenu = ref<IQMenuRef | null>(null);
+    const setColor = (color: string | null) => {
+      if (color === null) return;
+      currentColor.value = color;
+      editor.value?.runCmd('foreColor', color);
+      colorMenu.value?.hide();
+    };
 
     return {
       campaign,
@@ -111,7 +150,23 @@ export default defineComponent({
       content,
       editor,
       insertImage,
+      currentColor,
+      colorMenu,
+      setColor,
     };
   },
 });
 </script>
+
+<style lang="sass">
+// QColor's palette swatches (used by the journal editor's color picker) have no
+// hover indicator by default. QMenu teleports this popup to document.body, so
+// this must stay unscoped to still reach it.
+.q-color-picker__cube:hover
+  // Both rings are inset (never extend past the swatch's own box), so corner
+  // and edge swatches in the grid render identically to interior ones - an
+  // outset ring risks getting clipped by the palette container there.
+  // White-then-black (black listed last so it renders behind/inside white):
+  // on any swatch at least one ring contrasts, since they're opposites.
+  box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 4px rgba(0, 0, 0, .75)
+</style>
