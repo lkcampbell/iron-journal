@@ -25,40 +25,10 @@
         <q-btn-dropdown icon="sort" flat dense content-class="card-bg">
           <q-tooltip>Sort journal entries</q-tooltip>
           <q-list>
-            <q-item clickable v-close-popup @click="sortOrder = 'created-desc'">
-              <q-item-section>Date Created (Newest First)</q-item-section>
-              <q-item-section v-if="sortOrder === 'created-desc'" side>
-                <q-icon name="check" />
-              </q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup @click="sortOrder = 'created-asc'">
-              <q-item-section>Date Created (Oldest First)</q-item-section>
-              <q-item-section v-if="sortOrder === 'created-asc'" side>
-                <q-icon name="check" />
-              </q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup @click="sortOrder = 'updated-desc'">
-              <q-item-section>Date Last Updated (Newest First)</q-item-section>
-              <q-item-section v-if="sortOrder === 'updated-desc'" side>
-                <q-icon name="check" />
-              </q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup @click="sortOrder = 'updated-asc'">
-              <q-item-section>Date Last Updated (Oldest First)</q-item-section>
-              <q-item-section v-if="sortOrder === 'updated-asc'" side>
-                <q-icon name="check" />
-              </q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup @click="sortOrder = 'title-asc'">
-              <q-item-section>Title (A-Z)</q-item-section>
-              <q-item-section v-if="sortOrder === 'title-asc'" side>
-                <q-icon name="check" />
-              </q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup @click="sortOrder = 'title-desc'">
-              <q-item-section>Title (Z-A)</q-item-section>
-              <q-item-section v-if="sortOrder === 'title-desc'" side>
-                <q-icon name="check" />
+            <q-item v-for="option in orderedSortOptions" :key="option.field" clickable v-close-popup @click="selectSort(option.field)">
+              <q-item-section>{{ option.label }}</q-item-section>
+              <q-item-section v-if="sortField === option.field" side>
+                <q-icon :name="sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward'" />
               </q-item-section>
             </q-item>
           </q-list>
@@ -189,8 +159,33 @@ export default defineComponent({
       return false;
     };
 
-    type SortOrder = 'created-desc' | 'created-asc' | 'updated-desc' | 'updated-asc' | 'title-asc' | 'title-desc';
-    const sortOrder = ref<SortOrder>('created-desc');
+    type SortField = 'created' | 'updated' | 'title';
+    type SortDirection = 'asc' | 'desc';
+    const sortField = ref<SortField>('created');
+    const sortDirection = ref<SortDirection>('desc');
+
+    const sortOptions: { field: SortField; label: string }[] = [
+      { field: 'created', label: 'Date Created' },
+      { field: 'updated', label: 'Date Last Updated' },
+      { field: 'title', label: 'Title' },
+    ];
+
+    // The active criteria always sorts to the top of the menu, whether it was just selected
+    // or just toggled, so the current choice is never buried below the others.
+    const orderedSortOptions = computed(() => [
+      ...sortOptions.filter((option) => option.field === sortField.value),
+      ...sortOptions.filter((option) => option.field !== sortField.value),
+    ]);
+
+    // Clicking the active criteria flips its direction; clicking a different one selects it
+    // (keeping whatever direction was already showing).
+    const selectSort = (field: SortField) => {
+      if (sortField.value === field) {
+        sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+      } else {
+        sortField.value = field;
+      }
+    };
 
     // Entries from before createdAt/updatedAt existed fall back to 0 (oldest).
     const byTimestamp = (field: 'createdAt' | 'updatedAt', direction: 1 | -1) => {
@@ -201,12 +196,10 @@ export default defineComponent({
     // Sorting is view-only: it never reorders campaign.data.journal, so it can't lose data or need undoing.
     const sortedJournal = computed(() => {
       const entries = campaign.data.journal.map((journal, index) => ({ journal, index }));
-      if (sortOrder.value === 'created-asc') return entries.sort(byTimestamp('createdAt', 1));
-      if (sortOrder.value === 'created-desc') return entries.sort(byTimestamp('createdAt', -1));
-      if (sortOrder.value === 'updated-asc') return entries.sort(byTimestamp('updatedAt', 1));
-      if (sortOrder.value === 'updated-desc') return entries.sort(byTimestamp('updatedAt', -1));
-      if (sortOrder.value === 'title-asc') return entries.sort((a, b) => a.journal.title.localeCompare(b.journal.title));
-      return entries.sort((a, b) => b.journal.title.localeCompare(a.journal.title));
+      const direction = sortDirection.value === 'asc' ? 1 : -1;
+      if (sortField.value === 'created') return entries.sort(byTimestamp('createdAt', direction));
+      if (sortField.value === 'updated') return entries.sort(byTimestamp('updatedAt', direction));
+      return entries.sort((a, b) => direction * a.journal.title.localeCompare(b.journal.title));
     });
 
     enum imageFloat {
@@ -248,7 +241,10 @@ export default defineComponent({
       showJournal,
       addJournal,
       removeJournal,
-      sortOrder,
+      sortField,
+      sortDirection,
+      orderedSortOptions,
+      selectSort,
       sortedJournal,
       loadImage,
       setEntryRef,
