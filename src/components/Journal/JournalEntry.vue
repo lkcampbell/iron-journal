@@ -22,33 +22,62 @@
         },
       }"
       :toolbar="[
-        [
-          {
-            icon: $q.iconSet.editor.align,
-            fixedLabel: true,
-            list: 'only-icons',
-            options: ['left', 'center', 'right', 'justify'],
-          },
-        ],
+        ['align'],
         ['ordered', 'unordered'],
         ['bold', 'italic', 'strike', 'underline'],
-        [
-          {
-            icon: $q.iconSet.editor.size,
-            fixedLabel: true,
-            list: 'no-icons',
-            options: ['size-1', 'size-2', 'size-3', 'size-4', 'size-5', 'size-6', 'size-7'],
-          },
-          'color',
-          'hr',
-        ],
+        ['size', 'color', 'hr'],
         ['undo', 'redo'],
         ['image'],
       ]"
       dense
     >
+      <!-- QEditor's native options-array dropdowns (what 'align'/'size' used to be) never
+      get a tooltip on the trigger button in this Quasar version - only single-command
+      buttons do. Rebuilt as slot buttons so every option can carry a real q-tooltip. -->
+      <template v-slot:align>
+        <q-btn flat dense :icon="$q.iconSet.editor.align">
+          <q-tooltip>Align</q-tooltip>
+          <q-menu no-focus>
+            <div class="q-editor__toolbar-group">
+              <q-btn flat dense :icon="$q.iconSet.editor.left" v-close-popup @click="runCmd('justifyLeft')">
+                <q-tooltip>Left align</q-tooltip>
+              </q-btn>
+              <q-btn flat dense :icon="$q.iconSet.editor.center" v-close-popup @click="runCmd('justifyCenter')">
+                <q-tooltip>Center align</q-tooltip>
+              </q-btn>
+              <q-btn flat dense :icon="$q.iconSet.editor.right" v-close-popup @click="runCmd('justifyRight')">
+                <q-tooltip>Right align</q-tooltip>
+              </q-btn>
+              <q-btn flat dense :icon="$q.iconSet.editor.justify" v-close-popup @click="runCmd('justifyFull')">
+                <q-tooltip>Justify align</q-tooltip>
+              </q-btn>
+            </div>
+          </q-menu>
+        </q-btn>
+      </template>
+
+      <template v-slot:size>
+        <q-btn flat dense :icon="$q.iconSet.editor.size">
+          <q-tooltip>Font size</q-tooltip>
+          <q-menu no-focus>
+            <q-list dense>
+              <q-item
+                v-for="(label, i) in sizeLabels"
+                :key="label"
+                clickable
+                v-close-popup
+                @click="runCmd('fontSize', String(i + 1))"
+              >
+                <q-item-section v-html="sizeItemHtml(i + 1, label)" />
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
+      </template>
+
       <template v-slot:color>
         <q-btn flat dense icon="format_color_text" :style="{ color: currentColor }">
+          <q-tooltip>Text color</q-tooltip>
           <!-- no-focus: QMenu's default focus trap fights QEditor's own
           focus-then-restore-selection logic in runCmd, silently dropping
           the foreColor command. -->
@@ -126,20 +155,28 @@ export default defineComponent({
     });
 
     const editor = ref<IQEditorRef | null>(null);
+    const runCmd = (cmd: string, param?: string) => {
+      editor.value?.runCmd(cmd, param);
+    };
     // Insert at the last-known cursor position instead of appending to the
     // end: QEditor saves the caret's Range on blur, and runCmd('insertHTML')
     // restores it before applying document.execCommand.
     const insertImage = (html: string) => {
-      editor.value?.runCmd('insertHTML', html);
+      runCmd('insertHTML', html);
     };
     const currentColor = ref<string | null>(null);
     const colorMenu = ref<IQMenuRef | null>(null);
     const setColor = (color: string | null) => {
       if (color === null) return;
       currentColor.value = color;
-      editor.value?.runCmd('foreColor', color);
+      runCmd('foreColor', color);
       colorMenu.value?.hide();
     };
+
+    // Mirrors QEditor's own size1..size7 lang strings (see the built-in
+    // 'size-N' definitions), so our rebuilt dropdown reads identically.
+    const sizeLabels = ['Very small', 'A bit small', 'Normal', 'Medium-large', 'Big', 'Very big', 'Maximum'];
+    const sizeItemHtml = (n: number, label: string) => `<font size="${n}">${label}</font>`;
 
     return {
       campaign,
@@ -149,10 +186,13 @@ export default defineComponent({
       title,
       content,
       editor,
+      runCmd,
       insertImage,
       currentColor,
       colorMenu,
       setColor,
+      sizeLabels,
+      sizeItemHtml,
     };
   },
 });
