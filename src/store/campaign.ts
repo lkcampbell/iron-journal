@@ -64,6 +64,7 @@ export const useCampaign = defineStore({
 
     appendToJournal(index: number, text: string) {
       this.data.journal[index].content += text;
+      this.data.journal[index].updatedAt = Date.now();
     },
 
     exportJournal() {

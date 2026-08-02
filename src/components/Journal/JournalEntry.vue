@@ -2,7 +2,7 @@
   <q-expansion-item class="q-px-sm" header-class="q-py-none q-px-none" :default-opened="open" expand-icon-toggle>
     <template v-slot:header>
       <div class="row full-width items-center">
-        <i-input class="col-grow q-mr-sm" label="Title" v-model="campaign.data.journal[index].title" />
+        <i-input class="col-grow q-mr-sm" label="Title" v-model="title" />
         <q-btn class="col-shrink" flat dense :icon="pinIcon(index)" @click="pin(index)" />
         <q-btn class="col-shrink" v-if="config.data.edit" flat dense icon="delete" @click="$emit('remove')">
           <q-tooltip>Delete this journal entry</q-tooltip>
@@ -13,7 +13,7 @@
     <q-editor
       ref="editor"
       placeholder="Content"
-      v-model="campaign.data.journal[index].content"
+      v-model="content"
       :definitions="{
         image: {
           tip: 'Upload an image',
@@ -42,7 +42,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { computed, defineComponent, ref } from 'vue';
 
 import { useCampaign } from 'src/store/campaign';
 import { useConfig } from 'src/store/config';
@@ -66,7 +66,7 @@ export default defineComponent({
     },
   },
   emits: ['remove', 'imgUpload'],
-  setup() {
+  setup(props) {
     const campaign = useCampaign();
     const config = useConfig();
 
@@ -76,6 +76,23 @@ export default defineComponent({
     const pin = (index: number) => {
       campaign.data.journal[index].pinned = !campaign.data.journal[index].pinned;
     };
+
+    // Routed through computed setters (rather than v-model straight onto the store) so every
+    // edit stamps updatedAt for the "Date Last Updated" sort.
+    const title = computed({
+      get: () => campaign.data.journal[props.index].title,
+      set: (value: string) => {
+        campaign.data.journal[props.index].title = value;
+        campaign.data.journal[props.index].updatedAt = Date.now();
+      },
+    });
+    const content = computed({
+      get: () => campaign.data.journal[props.index].content,
+      set: (value: string) => {
+        campaign.data.journal[props.index].content = value;
+        campaign.data.journal[props.index].updatedAt = Date.now();
+      },
+    });
 
     const editor = ref<IQEditorRef | null>(null);
     // Insert at the last-known cursor position instead of appending to the
@@ -90,6 +107,8 @@ export default defineComponent({
       config,
       pinIcon,
       pin,
+      title,
+      content,
       editor,
       insertImage,
     };

@@ -48,9 +48,12 @@ export function NewCharacter(): ICharacter {
 }
 
 export function NewJournal(): IJournalEntry {
+  const timestamp = Date.now();
   return {
     title: 'New journal entry',
     content: '',
+    createdAt: timestamp,
+    updatedAt: timestamp,
   };
 }
 

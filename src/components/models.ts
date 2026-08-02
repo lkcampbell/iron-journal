@@ -133,6 +133,9 @@ export interface IJournalEntry {
   title: string;
   content: string;
   pinned?: boolean;
+  // Optional because entries created before this field existed won't have it.
+  createdAt?: number;
+  updatedAt?: number;
 }
 
 export interface ILocation {

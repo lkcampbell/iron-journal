@@ -22,42 +22,80 @@
       </template>
 
       <template v-slot:after>
-        <q-btn icon="sort" flat dense @click="journalSortByTitle">
-          <q-tooltip>Sort journal entries by title</q-tooltip>
-        </q-btn>
+        <q-btn-dropdown icon="sort" flat dense content-class="card-bg">
+          <q-tooltip>Sort journal entries</q-tooltip>
+          <q-list>
+            <q-item clickable v-close-popup @click="sortOrder = 'created-desc'">
+              <q-item-section>Date Created (Newest First)</q-item-section>
+              <q-item-section v-if="sortOrder === 'created-desc'" side>
+                <q-icon name="check" />
+              </q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="sortOrder = 'created-asc'">
+              <q-item-section>Date Created (Oldest First)</q-item-section>
+              <q-item-section v-if="sortOrder === 'created-asc'" side>
+                <q-icon name="check" />
+              </q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="sortOrder = 'updated-desc'">
+              <q-item-section>Date Last Updated (Newest First)</q-item-section>
+              <q-item-section v-if="sortOrder === 'updated-desc'" side>
+                <q-icon name="check" />
+              </q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="sortOrder = 'updated-asc'">
+              <q-item-section>Date Last Updated (Oldest First)</q-item-section>
+              <q-item-section v-if="sortOrder === 'updated-asc'" side>
+                <q-icon name="check" />
+              </q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="sortOrder = 'title-asc'">
+              <q-item-section>Title (A-Z)</q-item-section>
+              <q-item-section v-if="sortOrder === 'title-asc'" side>
+                <q-icon name="check" />
+              </q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="sortOrder = 'title-desc'">
+              <q-item-section>Title (Z-A)</q-item-section>
+              <q-item-section v-if="sortOrder === 'title-desc'" side>
+                <q-icon name="check" />
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
       </template>
     </q-input>
   </div>
 
   <!-- Pinned -->
-  <div v-for="(journal, index) in campaign.data.journal" :key="index">
+  <div v-for="entry in sortedJournal" :key="entry.index">
     <journal-entry
-      :ref="(el) => setEntryRef(index, el)"
-      v-if="journal.pinned"
-      :index="index"
+      :ref="(el) => setEntryRef(entry.index, el)"
+      v-if="entry.journal.pinned"
+      :index="entry.index"
       open
       @imgUpload="
-        journalEntryID = index;
+        journalEntryID = entry.index;
         imageToLoad = null;
         showImageLoad = true;
       "
-      @remove="removeJournal(index)"
+      @remove="removeJournal(entry.index)"
     />
   </div>
 
   <!-- Not pinned -->
-  <div v-for="(journal, index) in campaign.data.journal" :key="index">
+  <div v-for="entry in sortedJournal" :key="entry.index">
     <journal-entry
-      :ref="(el) => setEntryRef(index, el)"
-      v-if="showJournal(journal) && !journal.pinned"
-      :index="index"
-      :open="index === 0"
+      :ref="(el) => setEntryRef(entry.index, el)"
+      v-if="showJournal(entry.journal) && !entry.journal.pinned"
+      :index="entry.index"
+      :open="entry.index === 0"
       @imgUpload="
-        journalEntryID = index;
+        journalEntryID = entry.index;
         imageToLoad = null;
         showImageLoad = true;
       "
-      @remove="removeJournal(index)"
+      @remove="removeJournal(entry.index)"
     />
   </div>
 
@@ -95,11 +133,10 @@
 
 <script lang="ts">
 /* eslint-disable no-unused-vars */
-import { defineComponent, ref } from 'vue';
+import { computed, defineComponent, ref } from 'vue';
 
 import { IJournalEntry } from 'src/components/models';
 
-import { useQuasar } from 'quasar';
 import { useCampaign } from 'src/store/campaign';
 import { useConfig } from 'src/store/config';
 
@@ -152,15 +189,25 @@ export default defineComponent({
       return false;
     };
 
-    const $q = useQuasar();
-    const journalSortByTitle = () =>
-      $q
-        .dialog({
-          title: 'Confirm',
-          message: 'This will re-order your journal entries and cannot be undone. Are you sure?',
-          cancel: true,
-        })
-        .onOk(() => campaign.data.journal.sort((a: IJournalEntry, b: IJournalEntry) => b.title.localeCompare(a.title)));
+    type SortOrder = 'created-desc' | 'created-asc' | 'updated-desc' | 'updated-asc' | 'title-asc' | 'title-desc';
+    const sortOrder = ref<SortOrder>('created-desc');
+
+    // Entries from before createdAt/updatedAt existed fall back to 0 (oldest).
+    const byTimestamp = (field: 'createdAt' | 'updatedAt', direction: 1 | -1) => {
+      return (a: { journal: IJournalEntry }, b: { journal: IJournalEntry }) =>
+        direction * ((a.journal[field] ?? 0) - (b.journal[field] ?? 0));
+    };
+
+    // Sorting is view-only: it never reorders campaign.data.journal, so it can't lose data or need undoing.
+    const sortedJournal = computed(() => {
+      const entries = campaign.data.journal.map((journal, index) => ({ journal, index }));
+      if (sortOrder.value === 'created-asc') return entries.sort(byTimestamp('createdAt', 1));
+      if (sortOrder.value === 'created-desc') return entries.sort(byTimestamp('createdAt', -1));
+      if (sortOrder.value === 'updated-asc') return entries.sort(byTimestamp('updatedAt', 1));
+      if (sortOrder.value === 'updated-desc') return entries.sort(byTimestamp('updatedAt', -1));
+      if (sortOrder.value === 'title-asc') return entries.sort((a, b) => a.journal.title.localeCompare(b.journal.title));
+      return entries.sort((a, b) => b.journal.title.localeCompare(a.journal.title));
+    });
 
     enum imageFloat {
       Left = 'left',
@@ -201,7 +248,8 @@ export default defineComponent({
       showJournal,
       addJournal,
       removeJournal,
-      journalSortByTitle,
+      sortOrder,
+      sortedJournal,
       loadImage,
       setEntryRef,
       showImageLoad,
