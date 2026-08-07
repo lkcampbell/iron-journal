@@ -123,11 +123,10 @@
 <script lang="ts">
 import { defineComponent, computed, ref, watch } from 'vue';
 
-import { ISelectOpt } from '../models';
-
 import { useCampaign } from 'src/store/campaign';
 
-import { d, moveRoll, NewRollData, updateResults } from 'src/lib/roll';
+import { characterStatOpts, d, moveRoll, NewRollData, updateResults } from 'src/lib/roll';
+import { formatRollNote } from 'src/lib/journalNotes';
 import { icon } from 'src/lib/icons';
 
 export default defineComponent({
@@ -166,16 +165,7 @@ export default defineComponent({
     const otherAttr = ref(0);
 
     const adds = ref(0);
-    const opts = computed((): ISelectOpt[] => {
-      return [
-        { label: 'Edge', value: `edge:${campaign.data.character.stats.edge}` },
-        { label: 'Heart', value: `heart:${campaign.data.character.stats.heart}` },
-        { label: 'Iron', value: `iron:${campaign.data.character.stats.iron}` },
-        { label: 'Shadow', value: `shadow:${campaign.data.character.stats.shadow}` },
-        { label: 'Wits', value: `wits:${campaign.data.character.stats.wits}` },
-        { label: 'Other', value: 'other' },
-      ];
-    });
+    const opts = computed(() => characterStatOpts(campaign.data.character));
 
     const select = ref('');
     watch(
@@ -256,7 +246,10 @@ export default defineComponent({
 
       campaign.appendToJournal(
         0,
-        `<div class="note actionroll"><b>[${data.value.result}: ${data.value.action.die} + ${attribute.value} + ${adds.value} = ${data.value.action.score} vs ${data.value.challenge.die1.roll} | ${data.value.challenge.die2.roll}]</b></div>`
+        formatRollNote(
+          'actionroll',
+          `${data.value.result}: ${data.value.action.die} + ${attribute.value} + ${adds.value} = ${data.value.action.score} vs ${data.value.challenge.die1.roll} | ${data.value.challenge.die2.roll}`
+        )
       );
     };
 

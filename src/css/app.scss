@@ -60,3 +60,19 @@ ij-header {
 .cell-frame-selected {
   border-color: $selected !important;
 }
+
+.note {
+  display: block;
+  margin: 0.5em 0;
+  padding: 0.35em 0.6em;
+  border-radius: 2px;
+}
+
+.note.movereference {
+  padding: 0.5em 0.75em;
+}
+
+.note.movereference ul {
+  margin: 0.25em 0 0.25em 1.25em;
+  padding: 0;
+}

@@ -40,7 +40,6 @@
   <!-- Pinned -->
   <div v-for="entry in sortedJournal" :key="entry.index">
     <journal-entry
-      :ref="(el) => setEntryRef(entry.index, el)"
       v-if="entry.journal.pinned"
       :index="entry.index"
       open
@@ -56,7 +55,6 @@
   <!-- Not pinned -->
   <div v-for="entry in sortedJournal" :key="entry.index">
     <journal-entry
-      :ref="(el) => setEntryRef(entry.index, el)"
       v-if="showJournal(entry.journal) && !entry.journal.pinned"
       :index="entry.index"
       :open="entry.index === 0"
@@ -114,10 +112,6 @@ import { NewJournal } from 'src/lib/campaign';
 
 import JournalEntry from 'src/components/Journal/JournalEntry.vue';
 
-interface IJournalEntryRef {
-  insertImage: (html: string) => void;
-}
-
 export default defineComponent({
   name: 'Journal',
   components: { JournalEntry },
@@ -128,15 +122,6 @@ export default defineComponent({
     const addJournal = () => campaign.data.journal.unshift(NewJournal());
     const removeJournal = (index: number) => {
       if (window.confirm('Are you sure you want to delete this entry?')) campaign.data.journal.splice(index, 1);
-    };
-
-    const entryRefs: Record<number, IJournalEntryRef> = {};
-    const setEntryRef = (index: number, el: IJournalEntryRef | null) => {
-      if (el) {
-        entryRefs[index] = el;
-      } else {
-        delete entryRefs[index];
-      }
     };
 
     const filter = ref('');
@@ -225,12 +210,7 @@ export default defineComponent({
           imgClass += ' float-right';
         }
         const html = `<img class="${imgClass}" src="${img as string}" />`;
-        const entry = entryRefs[journalEntryID.value];
-        if (entry) {
-          entry.insertImage(html);
-        } else {
-          campaign.appendToJournal(journalEntryID.value, html);
-        }
+        campaign.appendToJournal(journalEntryID.value, html);
       };
 
       reader.readAsDataURL(f);
@@ -247,7 +227,6 @@ export default defineComponent({
       selectSort,
       sortedJournal,
       loadImage,
-      setEntryRef,
       showImageLoad,
       imageFloat,
       imageToLoad,

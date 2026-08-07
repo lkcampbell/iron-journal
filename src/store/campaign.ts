@@ -4,6 +4,7 @@ import { NewCampaign } from 'src/lib/campaign';
 import { useConfig } from './config';
 import { useSelection } from './selection';
 import { db } from 'src/lib/db';
+import { insertAtCursor } from 'src/lib/journalEditor';
 import { now } from 'src/lib/util';
 import { exportFile } from 'quasar';
 
@@ -63,6 +64,8 @@ export const useCampaign = defineStore({
     },
 
     appendToJournal(index: number, text: string) {
+      if (insertAtCursor(index, text)) return;
+
       this.data.journal[index].content += text;
       this.data.journal[index].updatedAt = Date.now();
     },

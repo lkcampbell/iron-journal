@@ -14,6 +14,9 @@
       ref="editor"
       placeholder="Content"
       v-model="content"
+      @focus="cursorFresh = true"
+      @mouseup="cursorFresh = true"
+      @keyup="cursorFresh = true"
       :definitions="{
         image: {
           tip: 'Upload an image',
@@ -98,10 +101,11 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref } from 'vue';
+import { computed, defineComponent, onMounted, onUnmounted, ref } from 'vue';
 
 import { useCampaign } from 'src/store/campaign';
 import { useConfig } from 'src/store/config';
+import { registerJournalInsert, unregisterJournalInsert } from 'src/lib/journalEditor';
 
 import IInput from 'src/components/Widgets/IInput.vue';
 
@@ -158,12 +162,33 @@ export default defineComponent({
     const runCmd = (cmd: string, param?: string) => {
       editor.value?.runCmd(cmd, param);
     };
+    // True once the user has genuinely repositioned the caret in this editor (focus,
+    // click, or keyboard navigation) since the last automated insert. execCommand
+    // ('insertHTML') collapses the cursor to a point *inside* the last inserted element
+    // (not cleanly after the whole block) - restoring that same spot for a second
+    // automated insert lands it nested inside the first instead of after it. So
+    // cursor-based insertion is only trusted once per genuine caret move; a second
+    // automated insert before the user interacts again falls back to a plain append.
+    // Note: focusing the editor alone isn't enough to detect a reposition - clicking to
+    // a new spot inside an already-focused editor doesn't re-fire 'focus', so mouseup/
+    // keyup are also treated as fresh since they're how the user actually moves the caret.
+    const cursorFresh = ref(true);
     // Insert at the last-known cursor position instead of appending to the
     // end: QEditor saves the caret's Range on blur, and runCmd('insertHTML')
     // restores it before applying document.execCommand.
-    const insertImage = (html: string) => {
-      runCmd('insertHTML', html);
+    const insertHtml = (html: string) => {
+      if (cursorFresh.value) {
+        runCmd('insertHTML', html);
+        cursorFresh.value = false;
+      } else {
+        content.value += html;
+      }
     };
+    // Registers this entry so campaign.appendToJournal (used by Moves, the dice
+    // Roller, and progress tracks) can insert at this editor's cursor instead of
+    // blindly appending to the end - mirrors how image uploads already insert here.
+    onMounted(() => registerJournalInsert(props.index, insertHtml));
+    onUnmounted(() => unregisterJournalInsert(props.index));
     const currentColor = ref<string | null>(null);
     const colorMenu = ref<IQMenuRef | null>(null);
     const setColor = (color: string | null) => {
@@ -187,7 +212,8 @@ export default defineComponent({
       content,
       editor,
       runCmd,
-      insertImage,
+      insertHtml,
+      cursorFresh,
       currentColor,
       colorMenu,
       setColor,

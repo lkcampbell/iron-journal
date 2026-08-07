@@ -1,7 +1,18 @@
-import { IRollData, IOracle } from 'src/components/models';
+import { IRollData, IOracle, ICharacter, ISelectOpt } from 'src/components/models';
 
 export const d = (size: number) => {
   return Math.floor(Math.random() * size) + 1;
+};
+
+export const characterStatOpts = (character: ICharacter): ISelectOpt[] => {
+  return [
+    { label: 'Edge', value: `edge:${character.stats.edge}` },
+    { label: 'Heart', value: `heart:${character.stats.heart}` },
+    { label: 'Iron', value: `iron:${character.stats.iron}` },
+    { label: 'Shadow', value: `shadow:${character.stats.shadow}` },
+    { label: 'Wits', value: `wits:${character.stats.wits}` },
+    { label: 'Other', value: 'other' },
+  ];
 };
 
 export const NewRollData = (): IRollData => {

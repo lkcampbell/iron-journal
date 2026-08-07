@@ -94,6 +94,7 @@ import { useQuasar } from 'quasar';
 
 import { Difficulty, NewMenace } from 'src/lib/tracks';
 import { moveRoll, NewRollData } from 'src/lib/roll';
+import { formatRollNote } from 'src/lib/journalNotes';
 import { sleep } from 'src/lib/util';
 import { useCampaign } from 'src/store/campaign';
 
@@ -192,7 +193,7 @@ export default defineComponent({
         updateValue();
         campaign.appendToJournal(
           0,
-          `<div class="note progress"><b>[Mark Progress: ${data.value.name} :${actionScore.value} boxes]</b></div>`
+          formatRollNote('progress', `Mark Progress: ${data.value.name} :${actionScore.value} boxes`)
         );
       })();
     };
@@ -234,7 +235,10 @@ export default defineComponent({
 
       campaign.appendToJournal(
         0,
-        `<div class="note progressroll"><b>[Progress Roll: ${data.value.name} :${rollData.value.result} = ${rollData.value.action.score} vs ${rollData.value.challenge.die1.roll} | ${rollData.value.challenge.die2.roll}]</b></div>`
+        formatRollNote(
+          'progressroll',
+          `Progress Roll: ${data.value.name} :${rollData.value.result} = ${rollData.value.action.score} vs ${rollData.value.challenge.die1.roll} | ${rollData.value.challenge.die2.roll}`
+        )
       );
     };
 
