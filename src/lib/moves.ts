@@ -6,7 +6,36 @@ export const Moves: { [index: string]: IMove[] } = {
       name: 'Face Danger',
       source: 'Ironsworn Rulebook, page 60',
       keywords: 'adventure risky threat',
-      text: 'When <b>you attempt something risky or react to an imminent threat</b>, envision your action and roll. If you act...<br /><ul><li>With speed, agility, or precision: Roll +edge.</li><li>With charm, loyalty, or courage: Roll +heart.</li><li>With aggressive action, forceful defense, strength, or endurance: Roll +iron.</li><li>With deception, stealth, or trickery: Roll +shadow.</li><li>With expertise, insight, or observation: Roll +wits.</li></ul>On a <b>strong hit</b>, you are successful. Take +1 momentum.<br /><br />On a <b>weak hit</b>, you succeed, but face a troublesome cost. Choose one.<ul><li>You are delayed, lose advantage, or face a new danger: Suffer -1 momentum.</li>  <li> You are tired or hurt: <i>Endure Harm</i> (1 harm).</li>  <li> You are dispirited or afraid: <i>Endure Stress</i> (1 stress).</li>  <li> You sacrifice resources: Suffer -1 supply.</li></ul>On a <b>miss</b>, you fail, or your progress is undermined by a dramatic and costly turn of events. <i>Pay the Price</i>.'
+      text: 'When <b>you attempt something risky or react to an imminent threat</b>, envision your action and roll. If you act...<br /><ul><li>With speed, agility, or precision: Roll +edge.</li><li>With charm, loyalty, or courage: Roll +heart.</li><li>With aggressive action, forceful defense, strength, or endurance: Roll +iron.</li><li>With deception, stealth, or trickery: Roll +shadow.</li><li>With expertise, insight, or observation: Roll +wits.</li></ul>On a <b>strong hit</b>, you are successful. Take +1 momentum.<br /><br />On a <b>weak hit</b>, you succeed, but face a troublesome cost. Choose one.<ul><li>You are delayed, lose advantage, or face a new danger: Suffer -1 momentum.</li>  <li> You are tired or hurt: <i>Endure Harm</i> (1 harm).</li>  <li> You are dispirited or afraid: <i>Endure Stress</i> (1 stress).</li>  <li> You sacrifice resources: Suffer -1 supply.</li></ul>On a <b>miss</b>, you fail, or your progress is undermined by a dramatic and costly turn of events. <i>Pay the Price</i>.',
+      outcomes: {
+        strongHit: {
+          text: 'You are successful. Take +1 momentum.',
+        },
+        weakHit: {
+          text: 'You succeed, but face a troublesome cost. Choose one.',
+          choices: [
+            {
+              label: 'Delayed, lose advantage, or new danger',
+              text: 'You are delayed, lose advantage, or face a new danger: Suffer -1 momentum.',
+            },
+            {
+              label: 'Tired or hurt',
+              text: 'You are tired or hurt: <i>Endure Harm</i> (1 harm).',
+            },
+            {
+              label: 'Dispirited or afraid',
+              text: 'You are dispirited or afraid: <i>Endure Stress</i> (1 stress).',
+            },
+            {
+              label: 'Sacrifice resources',
+              text: 'You sacrifice resources: Suffer -1 supply.',
+            },
+          ],
+        },
+        miss: {
+          text: 'You fail, or your progress is undermined by a dramatic and costly turn of events. <i>Pay the Price</i>.',
+        },
+      },
     },
     {
       name: 'Secure An Advantage',

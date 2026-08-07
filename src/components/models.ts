@@ -277,12 +277,27 @@ export interface ICampaign {
 }
 
 // Moves
+export interface IMoveOutcomeChoice {
+  label: string;
+  text: string;
+}
+
+export interface IMoveOutcome {
+  text: string;
+  choices?: IMoveOutcomeChoice[];
+}
+
 export interface IMove {
   name: string;
   source: string;
   text: string;
   keywords: string;
   oracles?: string[];
+  outcomes?: {
+    strongHit: IMoveOutcome;
+    weakHit: IMoveOutcome;
+    miss: IMoveOutcome;
+  };
 }
 
 // Oracles

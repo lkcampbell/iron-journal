@@ -9,7 +9,7 @@
     <q-card class="card-bg">
       <q-card-section v-html="move.text" />
       <q-card-section class="q-gutter-sm">
-        <div class="row items-center">
+        <div v-if="!hasStructuredOutcomes" class="row items-center">
           <q-btn label="Insert move text" icon="mdi-book-open-page-variant-outline" outline dense @click="insertReference">
             <q-tooltip>Insert this move's text into the journal</q-tooltip>
           </q-btn>
@@ -36,21 +36,40 @@
           </q-btn>
         </div>
 
-        <div v-if="statRoll.result" class="row items-center justify-evenly text-h6">
-          <div :class="statRoll.action.color">
-            {{ statRoll.result }}<span v-if="statRoll.challenge.match"> with a match</span>
+        <div v-if="statRoll.result" class="q-gutter-sm">
+          <div class="row items-center justify-evenly text-h6">
+            <div :class="statRoll.action.color">
+              {{ statRoll.result }}<span v-if="statRoll.challenge.match"> with a match</span>
+            </div>
+            <span :class="statRoll.action.color">{{ statRoll.action.score }}</span
+            ><span>vs</span>
+            <span :class="statRoll.challenge.die1.color">{{ statRoll.challenge.die1.roll }}</span
+            ><span>|</span>
+            <span :class="statRoll.challenge.die2.color">{{ statRoll.challenge.die2.roll }}</span>
+            <q-btn
+              icon="save"
+              flat
+              dense
+              :disable="!canSaveOutcome"
+              @click="hasStructuredOutcomes ? saveMoveOutcome() : saveStatRoll()"
+            >
+              <q-tooltip>Save roll to journal</q-tooltip>
+            </q-btn>
+            <q-btn icon="mdi-close-circle" flat dense @click="clearStatRoll">
+              <q-tooltip>Clear roll result</q-tooltip>
+            </q-btn>
           </div>
-          <span :class="statRoll.action.color">{{ statRoll.action.score }}</span
-          ><span>vs</span>
-          <span :class="statRoll.challenge.die1.color">{{ statRoll.challenge.die1.roll }}</span
-          ><span>|</span>
-          <span :class="statRoll.challenge.die2.color">{{ statRoll.challenge.die2.roll }}</span>
-          <q-btn icon="save" flat dense @click="saveStatRoll">
-            <q-tooltip>Save roll to journal</q-tooltip>
-          </q-btn>
-          <q-btn icon="mdi-close-circle" flat dense @click="clearStatRoll">
-            <q-tooltip>Clear roll result</q-tooltip>
-          </q-btn>
+
+          <div v-if="currentOutcome">
+            <div v-html="currentOutcome.text" />
+            <q-option-group
+              v-if="currentOutcome.choices"
+              v-model="selectedChoice"
+              :options="choiceOpts"
+              color="primary"
+              dense
+            />
+          </div>
         </div>
       </q-card-section>
       <q-card-section v-if="move.oracles" class="q-gutter-md">
@@ -73,11 +92,22 @@
 
 <script lang="ts">
 import { defineComponent, PropType, ref, computed } from 'vue';
-import { IMove } from 'src/components/models';
+import { IMove, IMoveOutcome } from 'src/components/models';
 import { Move } from 'src/lib/oracles/move';
 import { characterStatOpts, moveRoll, NewRollData, oracleRoll } from 'src/lib/roll';
-import { formatMoveActionRollNote, formatMoveReferenceNote, formatRollNote } from 'src/lib/journalNotes';
+import {
+  formatMoveActionRollNote,
+  formatMoveOutcomeNote,
+  formatMoveReferenceNote,
+  formatRollNote,
+} from 'src/lib/journalNotes';
 import { useCampaign } from 'src/store/campaign';
+
+const outcomeKeys: { [index: string]: 'strongHit' | 'weakHit' | 'miss' } = {
+  'Strong Hit': 'strongHit',
+  'Weak Hit': 'weakHit',
+  Miss: 'miss',
+};
 
 export default defineComponent({
   name: 'Move',
@@ -121,7 +151,25 @@ export default defineComponent({
     const statOtherAttr = ref(0);
     const statAdds = ref(0);
     const statRoll = ref(NewRollData());
+    const selectedChoice = ref('');
+
+    const hasStructuredOutcomes = computed(() => !!props.move.outcomes);
+    const currentOutcome = computed((): IMoveOutcome | undefined => {
+      const outcomes = props.move.outcomes;
+      const key = outcomeKeys[statRoll.value.result];
+      if (!outcomes || !key) return undefined;
+      return outcomes[key];
+    });
+    const choiceOpts = computed(() => (currentOutcome.value?.choices ?? []).map((c) => ({ label: c.label, value: c.label })));
+    const selectedChoiceObj = computed(() => currentOutcome.value?.choices?.find((c) => c.label === selectedChoice.value));
+    const canSaveOutcome = computed(() => {
+      if (!hasStructuredOutcomes.value) return true;
+      if (!currentOutcome.value) return false;
+      return !currentOutcome.value.choices || !!selectedChoiceObj.value;
+    });
+
     const rollStat = () => {
+      selectedChoice.value = '';
       const attr =
         statSelect.value === 'other'
           ? statOtherAttr.value
@@ -130,10 +178,21 @@ export default defineComponent({
           : 0;
       statRoll.value = moveRoll(attr, statAdds.value, campaign.data.character.tracks.momentum.value, false);
     };
-    const clearStatRoll = () => (statRoll.value = NewRollData());
+    const clearStatRoll = () => {
+      statRoll.value = NewRollData();
+      selectedChoice.value = '';
+    };
     const saveStatRoll = () => {
       if (!statRoll.value.result) return;
       campaign.appendToJournal(0, formatMoveActionRollNote(props.move, props.moveType, statRoll.value));
+      clearStatRoll();
+    };
+    const saveMoveOutcome = () => {
+      if (!statRoll.value.result || !currentOutcome.value || !canSaveOutcome.value) return;
+      campaign.appendToJournal(
+        0,
+        formatMoveOutcomeNote(props.move, props.moveType, statRoll.value, currentOutcome.value, selectedChoiceObj.value)
+      );
       clearStatRoll();
     };
 
@@ -154,6 +213,13 @@ export default defineComponent({
       rollStat,
       clearStatRoll,
       saveStatRoll,
+
+      selectedChoice,
+      hasStructuredOutcomes,
+      currentOutcome,
+      choiceOpts,
+      canSaveOutcome,
+      saveMoveOutcome,
     };
   },
 });

@@ -1,4 +1,4 @@
-import { IMove, IRollData } from 'src/components/models';
+import { IMove, IMoveOutcome, IMoveOutcomeChoice, IRollData } from 'src/components/models';
 import { moveCategoryColours, noteTypeColours } from 'src/lib/moveColours';
 
 export type NoteType =
@@ -6,7 +6,8 @@ export type NoteType =
   | 'progress' // ProgressTrack.vue mark()
   | 'progressroll' // ProgressTrack.vue conclude()
   | 'moveoracleroll' // Move.vue — sub-oracle roll tied to a move
-  | 'moveactionroll' // Move.vue — move-tagged +stat roll outcome
+  | 'moveactionroll' // Move.vue — move-tagged +stat roll outcome, unstructured moves
+  | 'moveoutcome' // Move.vue — move-tagged +stat roll outcome with structured outcome text
   | 'movereference'; // Move.vue — move name + full rules text, no roll
 
 const FONT_SIZE = '0.95em';
@@ -32,4 +33,19 @@ export const formatMoveActionRollNote = (move: IMove, moveType: string, roll: IR
   const c = moveCategoryColours[moveCategoryKey(moveType)];
   const label = `${move.name}: ${roll.result} = ${roll.action.score} vs ${roll.challenge.die1.roll} | ${roll.challenge.die2.roll}`;
   return formatRollNote('moveactionroll', label, c);
+};
+
+// Move-tagged action-roll outcome carrying the move's structured outcome text
+// (and chosen sub-choice text, if the outcome offered one).
+export const formatMoveOutcomeNote = (
+  move: IMove,
+  moveType: string,
+  roll: IRollData,
+  outcome: IMoveOutcome,
+  choice?: IMoveOutcomeChoice
+): string => {
+  const c = moveCategoryColours[moveCategoryKey(moveType)];
+  const label = `${move.name}: ${roll.result} = ${roll.action.score} vs ${roll.challenge.die1.roll} | ${roll.challenge.die2.roll}`;
+  const choiceHtml = choice ? `<div><i>${choice.label}:</i> ${choice.text}</div>` : '';
+  return `<div class="note moveoutcome"><b style="color: ${c}; font-size: ${FONT_SIZE}">${label}</b><div>${outcome.text}</div>${choiceHtml}</div>`;
 };
