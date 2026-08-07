@@ -14,9 +14,6 @@
       ref="editor"
       placeholder="Content"
       v-model="content"
-      @focus="cursorFresh = true"
-      @mouseup="cursorFresh = true"
-      @keyup="cursorFresh = true"
       :definitions="{
         image: {
           tip: 'Upload an image',
@@ -162,27 +159,20 @@ export default defineComponent({
     const runCmd = (cmd: string, param?: string) => {
       editor.value?.runCmd(cmd, param);
     };
-    // True once the user has genuinely repositioned the caret in this editor (focus,
-    // click, or keyboard navigation) since the last automated insert. execCommand
-    // ('insertHTML') collapses the cursor to a point *inside* the last inserted element
-    // (not cleanly after the whole block) - restoring that same spot for a second
-    // automated insert lands it nested inside the first instead of after it. So
-    // cursor-based insertion is only trusted once per genuine caret move; a second
-    // automated insert before the user interacts again falls back to a plain append.
-    // Note: focusing the editor alone isn't enough to detect a reposition - clicking to
-    // a new spot inside an already-focused editor doesn't re-fire 'focus', so mouseup/
-    // keyup are also treated as fresh since they're how the user actually moves the caret.
-    const cursorFresh = ref(true);
-    // Insert at the last-known cursor position instead of appending to the
-    // end: QEditor saves the caret's Range on blur, and runCmd('insertHTML')
-    // restores it before applying document.execCommand.
+    // Insert at the last-known cursor position instead of appending to the end: QEditor
+    // tracks the caret continuously (it saves the Range on every document selectionchange,
+    // not just on blur) and runCmd('insertHTML') restores it before applying
+    // document.execCommand, so this lands wherever the user last clicked or typed in this
+    // entry - even if focus is currently on a Move/Roller button elsewhere on the page.
+    // execCommand('insertHTML') collapses the caret to a point *inside* the newly
+    // inserted element (e.g. inside its trailing <b> label) rather than cleanly after
+    // the whole block, so a second insert right afterwards - without the user clicking
+    // or typing in between - would land nested inside the first note instead of after
+    // it. A trailing zero-width space gives the browser a plain text node to collapse
+    // the caret into right after the block, so it reads as a normal "after this note"
+    // position and the next insert lands as a sibling instead of nesting.
     const insertHtml = (html: string) => {
-      if (cursorFresh.value) {
-        runCmd('insertHTML', html);
-        cursorFresh.value = false;
-      } else {
-        content.value += html;
-      }
+      runCmd('insertHTML', `${html}\u200B`);
     };
     // Registers this entry so campaign.appendToJournal (used by Moves, the dice
     // Roller, and progress tracks) can insert at this editor's cursor instead of
@@ -213,7 +203,6 @@ export default defineComponent({
       editor,
       runCmd,
       insertHtml,
-      cursorFresh,
       currentColor,
       colorMenu,
       setColor,
