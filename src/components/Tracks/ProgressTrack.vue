@@ -34,7 +34,7 @@
     </div>
 
     <div class="row justify-evenly">
-      <q-btn label="Mark" dense :size="btnSize" flat @click="mark" />
+      <q-btn label="Mark" dense :size="btnSize" flat @click="mark" data-testid="track-mark-btn" />
       <q-btn
         v-for="(value, index) in data.boxes"
         :key="index"
@@ -43,8 +43,17 @@
         :size="btnSize"
         :icon="boxIcon(value)"
         @click="boxIncrement(index)"
+        data-testid="track-box"
       />
-      <q-btn v-if="showConcludeBtn" icon="mdi-dice-6" flat dense :size="btnSize" @click="conclude">
+      <q-btn
+        v-if="showConcludeBtn"
+        icon="mdi-dice-6"
+        flat
+        dense
+        :size="btnSize"
+        @click="conclude"
+        data-testid="track-conclude-btn"
+      >
         <q-tooltip>Make a progress roll</q-tooltip>
       </q-btn>
     </div>

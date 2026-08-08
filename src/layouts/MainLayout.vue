@@ -19,7 +19,7 @@
           <q-tooltip>Toggle Delete buttons</q-tooltip>
         </q-toggle>
 
-        <q-btn dense flat icon="edit_note" @click="toggleRightDrawer">
+        <q-btn dense flat icon="edit_note" @click="toggleRightDrawer" data-testid="toggle-right-drawer-btn">
           <q-tooltip>Toggle right drawer for Oracles, Moves and Journal</q-tooltip>
         </q-btn>
       </q-toolbar>

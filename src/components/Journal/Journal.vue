@@ -12,7 +12,7 @@
       label="Search by title or content"
     >
       <template v-slot:before>
-        <q-btn class="col-shrink" icon="add_circle" flat dense @click="addJournal">
+        <q-btn class="col-shrink" icon="add_circle" flat dense @click="addJournal" data-testid="journal-add-btn">
           <q-tooltip>Add a journal entry</q-tooltip>
         </q-btn>
       </template>

@@ -7,6 +7,7 @@
     :caption="caption"
     :header-class="cardStyle"
     style="border-radius: 4px"
+    :data-testid="`move-${move.name}`"
   >
     <q-card class="card-bg">
       <q-card-section v-html="move.text" />
@@ -32,7 +33,7 @@
             <q-tooltip>Custom attribute value</q-tooltip>
           </q-input>
           <q-input class="col-1" type="number" label="Adds" dense borderless hide-bottom-space v-model="statAdds" />
-          <q-btn dense flat @click="rollStat">
+          <q-btn dense flat @click="rollStat" data-testid="move-roll-btn">
             <q-icon name="mdi-dice-6" />
             <q-tooltip>Roll +Attribute</q-tooltip>
           </q-btn>
@@ -54,6 +55,7 @@
               dense
               :disable="!canSaveOutcome"
               @click="hasStructuredOutcomes ? saveMoveOutcome() : saveStatRoll()"
+              data-testid="move-save-btn"
             >
               <q-tooltip>Save roll to journal</q-tooltip>
             </q-btn>

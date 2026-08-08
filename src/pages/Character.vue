@@ -255,6 +255,7 @@
     <div class="text-h4 text-center q-mt-md q-mb-sm">Bonds</div>
     <progress-track
       class="q-mb-md"
+      data-testid="bonds-track"
       v-model="campaign.data.character.bonds"
       :showName="false"
       :showDifficulty="false"
