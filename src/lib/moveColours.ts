@@ -19,3 +19,13 @@ export const noteTypeColours: { [index: string]: string } = {
   progressroll: '#a3be8c', // $positive
   moveoracleroll: '#b48ead', // $accent
 };
+
+// Hex equivalents of the text-positive/text-warning/text-negative classes
+// roll.ts's updateResults() assigns to IRollData.action.color and
+// challenge.die1/die2.color, for reproducing the on-screen roll-result
+// colouring (per action/die, not per move outcome) in journal note HTML.
+export const rollResultColours: { [index: string]: string } = {
+  'text-positive': '#a3be8c', // $positive
+  'text-warning': '#ebcb8b', // $warning
+  'text-negative': '#bf616a', // $negative
+};

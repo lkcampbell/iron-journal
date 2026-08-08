@@ -62,13 +62,13 @@
 
           <div v-if="currentOutcome">
             <div v-html="currentOutcome.text" />
-            <q-option-group
-              v-if="currentOutcome.choices"
-              v-model="selectedChoice"
-              :options="choiceOpts"
-              color="primary"
-              dense
-            />
+            <div v-if="currentOutcome.choices" class="q-gutter-y-xs">
+              <div v-for="choice in currentOutcome.choices" :key="choice.label">
+                <q-radio v-model="selectedChoice" :val="choice.label" dense>
+                  <span v-html="choice.text" />
+                </q-radio>
+              </div>
+            </div>
           </div>
         </div>
       </q-card-section>
@@ -160,7 +160,6 @@ export default defineComponent({
       if (!outcomes || !key) return undefined;
       return outcomes[key];
     });
-    const choiceOpts = computed(() => (currentOutcome.value?.choices ?? []).map((c) => ({ label: c.label, value: c.label })));
     const selectedChoiceObj = computed(() => currentOutcome.value?.choices?.find((c) => c.label === selectedChoice.value));
     const canSaveOutcome = computed(() => {
       if (!hasStructuredOutcomes.value) return true;
@@ -217,7 +216,6 @@ export default defineComponent({
       selectedChoice,
       hasStructuredOutcomes,
       currentOutcome,
-      choiceOpts,
       canSaveOutcome,
       saveMoveOutcome,
     };
