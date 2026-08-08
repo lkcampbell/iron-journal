@@ -1,12 +1,14 @@
 import { app, BrowserWindow, nativeTheme, Menu, MenuItem } from 'electron'
 import path from 'path'
+import fs from 'fs'
 
 try {
   if (process.platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {
-    require('fs').unlinkSync(require('path').join(app.getPath('userData'), 'DevTools Extensions'))
+    fs.unlinkSync(path.join(app.getPath('userData'), 'DevTools Extensions'))
   }
 } catch (_) { }
 
+/** @type {BrowserWindow | null} */
 let mainWindow
 
 function createWindow () {
@@ -26,7 +28,7 @@ function createWindow () {
 
   mainWindow.setMenuBarVisibility(false)
 
-  mainWindow.loadURL(process.env.APP_URL)
+  void mainWindow.loadURL(process.env.APP_URL)
 
   if (process.env.DEBUGGING) {
     // if on DEV or Production with debug enabled

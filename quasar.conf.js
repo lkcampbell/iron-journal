@@ -8,7 +8,6 @@
 
 /* eslint-env node */
 /* eslint-disable @typescript-eslint/no-var-requires */
-const { allowedNodeEnvironmentFlags } = require('process');
 const { configure } = require('quasar/wrappers');
 
 module.exports = configure(function (ctx) {
