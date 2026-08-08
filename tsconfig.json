@@ -2,6 +2,10 @@
   "extends": "@quasar/app-webpack/tsconfig-preset",
   "compilerOptions": {
     "baseUrl": ".",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    // @quasar/app-webpack's tsconfig-preset sets moduleResolution "node"
+    // (aka "node10"), deprecated as of TS 5.9 and removed in TS 7. Silence
+    // until the preset itself moves to "bundler"/"node16".
+    "ignoreDeprecations": "5.0"
   }
 }
