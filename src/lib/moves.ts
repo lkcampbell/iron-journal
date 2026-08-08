@@ -1,5 +1,13 @@
 import { IMove } from 'src/components/models'
 
+export function findMove (name: string): { move: IMove; moveType: string } | undefined {
+  for (const moveType of Object.keys(Moves)) {
+    const move = Moves[moveType].find((m) => m.name === name)
+    if (move) return { move, moveType }
+  }
+  return undefined
+}
+
 export const Moves: { [index: string]: IMove[] } = {
   'Adventure Moves': [
     {
@@ -10,6 +18,7 @@ export const Moves: { [index: string]: IMove[] } = {
       outcomes: {
         strongHit: {
           text: 'You are successful. Take +1 momentum.',
+          effects: [{ track: 'momentum', delta: 1 }],
         },
         weakHit: {
           text: 'You succeed, but face a troublesome cost. Choose one.',
@@ -17,23 +26,30 @@ export const Moves: { [index: string]: IMove[] } = {
             {
               label: 'Delayed, lose advantage, or new danger',
               text: 'You are delayed, lose advantage, or face a new danger: Suffer -1 momentum.',
+              effects: [{ track: 'momentum', delta: -1 }],
             },
             {
               label: 'Tired or hurt',
               text: 'You are tired or hurt: <i>Endure Harm</i> (1 harm).',
+              effects: [{ track: 'health', delta: -1 }],
+              triggerMove: 'Endure Harm',
             },
             {
               label: 'Dispirited or afraid',
               text: 'You are dispirited or afraid: <i>Endure Stress</i> (1 stress).',
+              effects: [{ track: 'spirit', delta: -1 }],
+              triggerMove: 'Endure Stress',
             },
             {
               label: 'Sacrifice resources',
               text: 'You sacrifice resources: Suffer -1 supply.',
+              effects: [{ track: 'supply', delta: -1 }],
             },
           ],
         },
         miss: {
           text: 'You fail, or your progress is undermined by a dramatic and costly turn of events. <i>Pay the Price</i>.',
+          triggerMove: 'Pay the Price',
         },
       },
     },
@@ -171,7 +187,34 @@ export const Moves: { [index: string]: IMove[] } = {
       source: 'Ironsworn Rulebook, page 91',
       keywords: 'suffer physical damage',
       text: 'When <b>you face physical damage</b>, suffer -health equal to your foe’s rank or as appropriate to the situation. If your health is 0, suffer -momentum equal to any remaining -health. Then, roll +health or +iron, whichever is higher.<br /><br />On a <b>strong hit</b>, choose one.<br /> <ul> <li> Shake it off: If your health is greater than 0, suffer -1 momentum in exchange for +1 health.</li>  <li> Embrace the pain: Take +1 momentum.</li></ul>On a <b>weak hit</b>, you press on.<br /><br />On a <b>miss</b>, also suffer -1 momentum. If you are at 0 health, you must mark wounded or maimed (if currently unmarked) or roll on the following table.<br />',
-      oracles: ['Endure Harm']
+      oracles: ['Endure Harm'],
+      outcomes: {
+        strongHit: {
+          text: 'Choose one.',
+          choices: [
+            {
+              label: 'Shake it off',
+              text: 'If your health is greater than 0, suffer -1 momentum in exchange for +1 health.',
+              effects: [
+                { track: 'momentum', delta: -1 },
+                { track: 'health', delta: 1 },
+              ],
+            },
+            {
+              label: 'Embrace the pain',
+              text: 'Take +1 momentum.',
+              effects: [{ track: 'momentum', delta: 1 }],
+            },
+          ],
+        },
+        weakHit: {
+          text: 'You press on.',
+        },
+        miss: {
+          text: 'Also suffer -1 momentum. If you are at 0 health, you must mark wounded or maimed (if currently unmarked) or roll on the following table.',
+          effects: [{ track: 'momentum', delta: -1 }],
+        },
+      },
     },
     {
       name: 'Face Death',
@@ -190,7 +233,34 @@ export const Moves: { [index: string]: IMove[] } = {
       source: 'Ironsworn Rulebook, page 95',
       keywords: 'suffer shock despair',
       text: 'When <b>you face mental shock or despair</b>, suffer -spirit equal to your foe’s rank or as appropriate to the situation. If your spirit is 0, suffer -momentum equal to any remaining -spirit. Then, roll +spirit or +heart, whichever is higher.<br /><br />On a <b>strong hit</b>, choose one.<br /> <ul> <li> Shake it off: If your spirit is greater than 0, suffer -1 momentum in exchange for +1 spirit</li>  <li> Embrace the darkness: Take +1 momentum</li></ul>On a <b>weak hit</b>, you press on.<br /><br />On a <b>miss</b>, also suffer -1 momentum. If you are at 0 spirit, you must mark shaken or corrupted (if currently unmarked) or roll on the following table.<br />',
-      oracles: ['Endure Stress']
+      oracles: ['Endure Stress'],
+      outcomes: {
+        strongHit: {
+          text: 'Choose one.',
+          choices: [
+            {
+              label: 'Shake it off',
+              text: 'If your spirit is greater than 0, suffer -1 momentum in exchange for +1 spirit.',
+              effects: [
+                { track: 'momentum', delta: -1 },
+                { track: 'spirit', delta: 1 },
+              ],
+            },
+            {
+              label: 'Embrace the darkness',
+              text: 'Take +1 momentum.',
+              effects: [{ track: 'momentum', delta: 1 }],
+            },
+          ],
+        },
+        weakHit: {
+          text: 'You press on.',
+        },
+        miss: {
+          text: 'Also suffer -1 momentum. If you are at 0 spirit, you must mark shaken or corrupted (if currently unmarked) or roll on the following table.',
+          effects: [{ track: 'momentum', delta: -1 }],
+        },
+      },
     },
     {
       name: 'Face Desolation',

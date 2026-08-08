@@ -26,9 +26,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, provide, ref, watch } from 'vue';
 import { IMove } from 'src/components/models';
 import { Moves } from 'src/lib/moves';
+import { focusMoveKey } from 'src/lib/moveNavigation';
 
 import Move from 'src/components/Moves/Move.vue';
 
@@ -37,6 +38,12 @@ export default defineComponent({
   components: { Move },
   setup() {
     const filter = ref('');
+    const focusMoveName = ref<string | null>(null);
+    // Clear any active search filter so a jumped-to move is guaranteed to be in the DOM.
+    watch(focusMoveName, (name) => {
+      if (name) filter.value = '';
+    });
+    provide(focusMoveKey, focusMoveName);
     const show = (move: IMove): boolean => {
       if (filter.value === '' || filter.value === null) {
         return true;

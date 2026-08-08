@@ -277,14 +277,25 @@ export interface ICampaign {
 }
 
 // Moves
+export type ITrackName = 'momentum' | 'health' | 'spirit' | 'supply';
+
+export interface IMoveEffect {
+  track: ITrackName;
+  delta: number;
+}
+
 export interface IMoveOutcomeChoice {
   label: string;
   text: string;
+  effects?: IMoveEffect[];
+  triggerMove?: string;
 }
 
 export interface IMoveOutcome {
   text: string;
   choices?: IMoveOutcomeChoice[];
+  effects?: IMoveEffect[];
+  triggerMove?: string;
 }
 
 export interface IMove {

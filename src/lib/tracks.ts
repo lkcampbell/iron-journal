@@ -1,4 +1,4 @@
-import { IDiff, IMenace, IProgressTrack } from 'src/components/models'
+import { ICharacter, IDiff, IMenace, IMoveEffect, IProgressTrack } from 'src/components/models'
 
 export const Difficulty: { [index: number]: IDiff } = {
   1: <IDiff>{ label: 'Troublesome', mark: 3, harm: 1 },
@@ -22,4 +22,9 @@ export function NewProgressTrack (): IProgressTrack {
     boxes: Array(10).fill(0) as number[],
     showMenace: false
   }
+}
+
+export function applyTrackEffect (character: ICharacter, effect: IMoveEffect): void {
+  const t = character.tracks[effect.track]
+  t.value = Math.min(t.max, Math.max(t.min, t.value + effect.delta))
 }

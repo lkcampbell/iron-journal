@@ -94,7 +94,7 @@ import { useQuasar } from 'quasar';
 
 import { Difficulty, NewMenace } from 'src/lib/tracks';
 import { moveRoll, NewRollData } from 'src/lib/roll';
-import { formatRollNote } from 'src/lib/journalNotes';
+import { colourToken, formatRollNote } from 'src/lib/journalNotes';
 import { sleep } from 'src/lib/util';
 import { useCampaign } from 'src/store/campaign';
 
@@ -237,7 +237,13 @@ export default defineComponent({
         0,
         formatRollNote(
           'progressroll',
-          `Progress Roll: ${data.value.name} :${rollData.value.result} = ${rollData.value.action.score} vs ${rollData.value.challenge.die1.roll} | ${rollData.value.challenge.die2.roll}`
+          `Progress Roll: ${data.value.name} :${colourToken(
+            `${rollData.value.result} = ${rollData.value.action.score}`,
+            rollData.value.action.color
+          )} vs ${colourToken(rollData.value.challenge.die1.roll, rollData.value.challenge.die1.color)} | ${colourToken(
+            rollData.value.challenge.die2.roll,
+            rollData.value.challenge.die2.color
+          )}`
         )
       );
     };

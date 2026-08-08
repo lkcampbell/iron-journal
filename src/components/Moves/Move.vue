@@ -1,5 +1,7 @@
 <template>
   <q-expansion-item
+    ref="expansionRef"
+    v-model="expanded"
     class="shadow-1 overflow-hidden"
     :label="move.name"
     :caption="caption"
@@ -69,6 +71,17 @@
                 </q-radio>
               </div>
             </div>
+            <div v-if="currentTriggerMove" class="q-mt-sm">
+              <q-btn
+                :label="`Make ${currentTriggerMove} →`"
+                icon="mdi-arrow-right-bold-box-outline"
+                outline
+                dense
+                @click="goToMove(currentTriggerMove)"
+              >
+                <q-tooltip>Jump to this move</q-tooltip>
+              </q-btn>
+            </div>
           </div>
         </div>
       </q-card-section>
@@ -91,10 +104,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, ref, computed } from 'vue';
+import { defineComponent, PropType, ref, computed, inject, nextTick, watch } from 'vue';
 import { IMove, IMoveOutcome } from 'src/components/models';
 import { Move } from 'src/lib/oracles/move';
 import { characterStatOpts, moveRoll, NewRollData, oracleRoll } from 'src/lib/roll';
+import { applyTrackEffect } from 'src/lib/tracks';
+import { focusMoveKey } from 'src/lib/moveNavigation';
 import {
   formatMoveActionRollNote,
   formatMoveOutcomeNote,
@@ -124,6 +139,25 @@ export default defineComponent({
   setup(props) {
     const campaign = useCampaign();
 
+    const expanded = ref(false);
+    const expansionRef = ref<{ $el: HTMLElement } | null>(null);
+    const focusMoveName = inject(focusMoveKey, ref<string | null>(null));
+    watch(
+      focusMoveName,
+      (name) => {
+        if (name !== props.move.name) return;
+        expanded.value = true;
+        expansionRef.value?.$el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      },
+      { immediate: true }
+    );
+    const goToMove = (name: string) => {
+      focusMoveName.value = name;
+      void nextTick(() => {
+        focusMoveName.value = null;
+      });
+    };
+
     const results = ref([] as string[]);
     const click = (o: string) => {
       if (props.move.oracles !== undefined) {
@@ -143,7 +177,7 @@ export default defineComponent({
     };
 
     const insertReference = () => {
-      campaign.appendToJournal(0, formatMoveReferenceNote(props.move, props.moveType));
+      campaign.appendToJournal(0, formatMoveReferenceNote(props.move));
     };
 
     const statOpts = computed(() => characterStatOpts(campaign.data.character));
@@ -166,6 +200,8 @@ export default defineComponent({
       if (!currentOutcome.value) return false;
       return !currentOutcome.value.choices || !!selectedChoiceObj.value;
     });
+    const currentEffects = computed(() => selectedChoiceObj.value?.effects ?? currentOutcome.value?.effects);
+    const currentTriggerMove = computed(() => selectedChoiceObj.value?.triggerMove ?? currentOutcome.value?.triggerMove);
 
     const rollStat = () => {
       selectedChoice.value = '';
@@ -183,14 +219,22 @@ export default defineComponent({
     };
     const saveStatRoll = () => {
       if (!statRoll.value.result) return;
-      campaign.appendToJournal(0, formatMoveActionRollNote(props.move, props.moveType, statRoll.value));
+      campaign.appendToJournal(0, formatMoveActionRollNote(props.move, statRoll.value));
       clearStatRoll();
     };
     const saveMoveOutcome = () => {
       if (!statRoll.value.result || !currentOutcome.value || !canSaveOutcome.value) return;
+      currentEffects.value?.forEach((effect) => applyTrackEffect(campaign.data.character, effect));
       campaign.appendToJournal(
         0,
-        formatMoveOutcomeNote(props.move, props.moveType, statRoll.value, currentOutcome.value, selectedChoiceObj.value)
+        formatMoveOutcomeNote(
+          props.move,
+          props.moveType,
+          statRoll.value,
+          currentOutcome.value,
+          selectedChoiceObj.value,
+          currentEffects.value
+        )
       );
       clearStatRoll();
     };
@@ -201,6 +245,10 @@ export default defineComponent({
       save,
       cardStyle,
       caption,
+
+      expanded,
+      expansionRef,
+      goToMove,
 
       insertReference,
 
@@ -216,6 +264,8 @@ export default defineComponent({
       selectedChoice,
       hasStructuredOutcomes,
       currentOutcome,
+      currentEffects,
+      currentTriggerMove,
       canSaveOutcome,
       saveMoveOutcome,
     };

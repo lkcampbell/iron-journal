@@ -126,7 +126,7 @@ import { defineComponent, computed, ref, watch } from 'vue';
 import { useCampaign } from 'src/store/campaign';
 
 import { characterStatOpts, d, moveRoll, NewRollData, updateResults } from 'src/lib/roll';
-import { formatRollNote } from 'src/lib/journalNotes';
+import { colourToken, formatRollNote } from 'src/lib/journalNotes';
 import { icon } from 'src/lib/icons';
 
 export default defineComponent({
@@ -248,7 +248,13 @@ export default defineComponent({
         0,
         formatRollNote(
           'actionroll',
-          `${data.value.result}: ${data.value.action.die} + ${attribute.value} + ${adds.value} = ${data.value.action.score} vs ${data.value.challenge.die1.roll} | ${data.value.challenge.die2.roll}`
+          `${colourToken(data.value.result, data.value.action.color)}: ${data.value.action.die} + ${attribute.value} + ${adds.value} = ${colourToken(
+            data.value.action.score,
+            data.value.action.color
+          )} vs ${colourToken(data.value.challenge.die1.roll, data.value.challenge.die1.color)} | ${colourToken(
+            data.value.challenge.die2.roll,
+            data.value.challenge.die2.color
+          )}`
         )
       );
     };

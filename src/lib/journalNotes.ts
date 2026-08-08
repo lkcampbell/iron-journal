@@ -1,5 +1,18 @@
-import { IMove, IMoveOutcome, IMoveOutcomeChoice, IRollData } from 'src/components/models';
-import { moveCategoryColours, noteTypeColours, rollResultColours } from 'src/lib/moveColours';
+import { IMove, IMoveEffect, IMoveOutcome, IMoveOutcomeChoice, IRollData } from 'src/components/models';
+import { rollResultColours } from 'src/lib/moveColours';
+
+const trackLabels: { [index: string]: string } = {
+  momentum: 'Momentum',
+  health: 'Health',
+  spirit: 'Spirit',
+  supply: 'Supply',
+};
+
+const formatEffects = (effects?: IMoveEffect[]): string => {
+  if (!effects || !effects.length) return '';
+  const parts = effects.map((e) => `${trackLabels[e.track] ?? e.track} ${e.delta > 0 ? '+' : ''}${e.delta}`);
+  return `<div><i>${parts.join(', ')}</i></div>`;
+};
 
 export type NoteType =
   | 'actionroll' // Roller.vue — generic +stat roll, no move context
@@ -12,49 +25,55 @@ export type NoteType =
 
 const FONT_SIZE = '0.95em';
 
-// "Adventure Moves" -> "adventure", "Optional Delve Moves" -> "optional", etc.
-// Mirrors Move.vue's existing header-colour derivation (props.moveType.split(' ')[0].toLowerCase()).
-export const moveCategoryKey = (moveType: string): string => moveType.split(' ')[0].toLowerCase();
+// Colours a roll token (a result/score or a challenge die) by its strong-hit/weak-hit/miss
+// outcome colour class. Notes never colour by move category — those colours don't mean
+// anything once the journal is read outside this app. Unrecognized colour classes are left
+// uncoloured rather than guessing at a fallback.
+export const colourToken = (value: string | number, colorClass: string): string => {
+  const c = rollResultColours[colorClass];
+  return c ? `<span style="color: ${c}">${value}</span>` : `${value}`;
+};
 
 // Single-line "[...]" bracket note — used for every roll/progress-style insertion.
-export const formatRollNote = (type: NoteType, label: string, colour?: string): string => {
-  const c = colour ?? noteTypeColours[type] ?? '#88c0d0';
-  return `<div class="note ${type}"><b style="color: ${c}; font-size: ${FONT_SIZE}">[${label}]</b></div>`;
+// `label` may already contain colourToken() spans for roll-outcome notes; non-roll
+// notes (progress marks, oracle-table rolls) just pass plain text.
+export const formatRollNote = (type: NoteType, label: string): string => {
+  return `<div class="note ${type}"><b style="font-size: ${FONT_SIZE}">[${label}]</b></div>`;
 };
 
 // Block note carrying a move's full rules text (reference insert, no roll involved).
-export const formatMoveReferenceNote = (move: IMove, moveType: string): string => {
-  const c = moveCategoryColours[moveCategoryKey(moveType)] ?? noteTypeColours.moveoracleroll;
-  return `<div class="note movereference"><b style="color: ${c}; font-size: ${FONT_SIZE}">${move.name}</b><div>${move.text}</div></div>`;
+export const formatMoveReferenceNote = (move: IMove): string => {
+  return `<div class="note movereference"><b style="font-size: ${FONT_SIZE}">[${move.name}]</b><div>${move.text}</div></div>`;
 };
 
-// Move-tagged action-roll outcome.
-export const formatMoveActionRollNote = (move: IMove, moveType: string, roll: IRollData): string => {
-  const c = moveCategoryColours[moveCategoryKey(moveType)];
-  const label = `${move.name}: ${roll.result} = ${roll.action.score} vs ${roll.challenge.die1.roll} | ${roll.challenge.die2.roll}`;
-  return formatRollNote('moveactionroll', label, c);
+// Move-tagged action-roll outcome, unstructured moves (no outcomes field).
+export const formatMoveActionRollNote = (move: IMove, roll: IRollData): string => {
+  const label =
+    `${move.name}: ` +
+    `${colourToken(`${roll.result} = ${roll.action.score}`, roll.action.color)} vs ` +
+    `${colourToken(roll.challenge.die1.roll, roll.challenge.die1.color)} | ` +
+    `${colourToken(roll.challenge.die2.roll, roll.challenge.die2.color)}`;
+  return formatRollNote('moveactionroll', label);
 };
 
 // Move-tagged action-roll outcome carrying the move's structured outcome text
-// (and chosen sub-choice text, if the outcome offered one). Mirrors the
-// on-screen roll display's per-token colouring (result+score by action.color,
-// each challenge die by its own color) rather than colouring the whole note —
-// the category::move-name prefix and the outcome/choice prose stay uncoloured.
+// (and chosen sub-choice text, if the outcome offered one). Colours the roll-result
+// tokens (result+score, each challenge die) individually by their strong-hit/weak-hit/miss
+// colour, mirroring the on-screen roll display — the outcome/choice prose stays uncoloured.
 export const formatMoveOutcomeNote = (
   move: IMove,
   moveType: string,
   roll: IRollData,
   outcome: IMoveOutcome,
-  choice?: IMoveOutcomeChoice
+  choice?: IMoveOutcomeChoice,
+  appliedEffects?: IMoveEffect[]
 ): string => {
-  const actionC = rollResultColours[roll.action.color] ?? noteTypeColours.moveoracleroll;
-  const die1C = rollResultColours[roll.challenge.die1.color] ?? noteTypeColours.moveoracleroll;
-  const die2C = rollResultColours[roll.challenge.die2.color] ?? noteTypeColours.moveoracleroll;
   const label =
     `${moveType}::${move.name}: ` +
-    `<span style="color: ${actionC}">${roll.result} = ${roll.action.score}</span> vs ` +
-    `<span style="color: ${die1C}">${roll.challenge.die1.roll}</span> | ` +
-    `<span style="color: ${die2C}">${roll.challenge.die2.roll}</span>`;
+    `${colourToken(`${roll.result} = ${roll.action.score}`, roll.action.color)} vs ` +
+    `${colourToken(roll.challenge.die1.roll, roll.challenge.die1.color)} | ` +
+    `${colourToken(roll.challenge.die2.roll, roll.challenge.die2.color)}`;
   const choiceHtml = choice ? `<div><i>${choice.label}:</i> ${choice.text}</div>` : '';
-  return `<div class="note moveoutcome"><b style="font-size: ${FONT_SIZE}">${label}</b><div>${outcome.text}</div>${choiceHtml}</div>`;
+  const effectsHtml = formatEffects(appliedEffects);
+  return `<div class="note moveoutcome"><b style="font-size: ${FONT_SIZE}">[${label}]</b><div>${outcome.text}</div>${choiceHtml}${effectsHtml}</div>`;
 };
