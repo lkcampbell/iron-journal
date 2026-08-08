@@ -5,10 +5,10 @@ import { exportFile } from 'quasar';
 import { stripTags, now } from 'src/lib/util';
 
 const strip = (oracles: ICustomOracle[]): ICustomOracle[] => {
-  oracles.forEach((o, i) => {
-    oracles[i].Table?.forEach((row, index) => {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      if (oracles[i].Table != undefined) oracles[i].Table![index].Result = stripTags(row.Result);
+  oracles.forEach((oracle) => {
+    const table = oracle.Table;
+    table?.forEach((row, index) => {
+      table[index].Result = stripTags(row.Result);
     });
   });
 
